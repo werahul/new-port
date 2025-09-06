@@ -16,8 +16,6 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
       lerp: 0.1,
       orientation: 'vertical',
       gestureOrientation: 'vertical',
-      smoothWheel: true,
-      smoothTouch: false,
       touchMultiplier: 2,
       infinite: false,
     })
