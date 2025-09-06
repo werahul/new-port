@@ -35,6 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        {/* Or use .png: <link rel="icon" type="image/png" href="/favicon.png" /> */}
+      </head>
       <body className={inter.className}>
         <ThemeProvider>
           <SmoothScroll>
@@ -47,4 +51,4 @@ export default function RootLayout({
       </body>
     </html>
   )
-} 
+}
