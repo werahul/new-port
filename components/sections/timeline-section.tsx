@@ -10,45 +10,53 @@ gsap.registerPlugin(ScrollTrigger)
 
 const timelineData = [
   {
-    id: 1,
-    year: '2023 - Present',
-    title: 'Senior Full-Stack Developer',
-    company: 'TechCorp Solutions',
-    location: 'San Francisco, CA',
-    description: 'Leading development of enterprise-scale applications using React, Node.js, and cloud technologies. Mentoring junior developers and implementing best practices.',
-    technologies: ['React', 'Node.js', 'AWS', 'Docker', 'Kubernetes'],
-    achievements: ['Reduced load times by 40%', 'Led team of 5 developers', 'Implemented CI/CD pipeline']
+    "id": 1,
+    "year": "2023 - Present",
+    "title": "Full-Stack Developer",
+    "company": "Melange Digital",
+    "location": "Goa - Remote",
+    "description": "Leading the development of enterprise-scale web applications with a focus on scalability, performance, and best practices in full-stack development.",
+    "technologies": ["React", "Next.js", "Node.js", "AWS", "Firebase"],
+    "achievements": [
+      "Delivered 15+ client projects end-to-end across various industries",
+      "Improved code quality and maintainability by 60% through best practices",
+      "Implemented monitoring and scalability solutions for growing client needs"
+    ]
   },
   {
-    id: 2,
-    year: '2021 - 2023',
-    title: 'Full-Stack Developer',
-    company: 'Digital Innovations Inc',
-    location: 'New York, NY',
-    description: 'Developed and maintained multiple web applications using MERN stack. Collaborated with design and product teams to deliver user-centric solutions.',
-    technologies: ['MongoDB', 'Express', 'React', 'Node.js', 'TypeScript'],
-    achievements: ['Built 10+ client projects', 'Improved code quality by 60%', 'Mentored 3 interns']
-  },
-  {
-    id: 3,
-    year: '2020 - 2021',
-    title: 'Frontend Developer',
-    company: 'StartupXYZ',
-    location: 'Austin, TX',
-    description: 'Focused on creating responsive and accessible user interfaces. Worked closely with UX designers to implement pixel-perfect designs.',
-    technologies: ['React', 'TypeScript', 'TailwindCSS', 'Framer Motion'],
-    achievements: ['Launched MVP in 3 months', 'Achieved 95% accessibility score', 'Reduced bundle size by 30%']
-  },
-  {
-    id: 4,
-    year: '2019 - 2020',
-    title: 'Junior Developer',
-    company: 'WebSolutions',
-    location: 'Remote',
-    description: 'Started my journey in web development, learning modern technologies and best practices. Contributed to various client projects.',
-    technologies: ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js'],
-    achievements: ['Completed 20+ projects', 'Learned full-stack development', 'Earned AWS certification']
+    "id": 2,
+    "year": "Jan 2023 - Jun 2023",
+    "title": "Web Development Intern",
+    "company": "Melange Digital",
+    "location": "Goa - Remote",
+    "description": "Assisted in developing responsive web applications while learning full-stack practices, collaborating with senior developers, and contributing to real client projects.",
+    "technologies": ["React", "Node.js", "Express", "TailwindCSS", "MongoDB"],
+    "achievements": [
+      "Contributed to 5+ client projects in frontend and backend development",
+      "Enhanced application UI/UX with responsive design improvements",
+      "Gained hands-on experience with API integration and version control (Git)"
+    ]
   }
+  // {
+  //   id: 3,
+  //   year: '2020 - 2021',
+  //   title: 'Frontend Developer',
+  //   company: 'StartupXYZ',
+  //   location: 'Austin, TX',
+  //   description: 'Focused on creating responsive and accessible user interfaces. Worked closely with UX designers to implement pixel-perfect designs.',
+  //   technologies: ['React', 'TypeScript', 'TailwindCSS', 'Framer Motion'],
+  //   achievements: ['Launched MVP in 3 months', 'Achieved 95% accessibility score', 'Reduced bundle size by 30%']
+  // },
+  // {
+  //   id: 4,
+  //   year: '2019 - 2020',
+  //   title: 'Junior Developer',
+  //   company: 'WebSolutions',
+  //   location: 'Remote',
+  //   description: 'Started my journey in web development, learning modern technologies and best practices. Contributed to various client projects.',
+  //   technologies: ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js'],
+  //   achievements: ['Completed 20+ projects', 'Learned full-stack development', 'Earned AWS certification']
+  // }
 ]
 
 export function TimelineSection() {
@@ -58,11 +66,11 @@ export function TimelineSection() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Timeline line animation
-      gsap.fromTo('.timeline-line', 
+      gsap.fromTo('.timeline-line',
         { scaleY: 0 },
-        { 
-          scaleY: 1, 
-          duration: 2, 
+        {
+          scaleY: 1,
+          duration: 2,
           ease: "power2.out",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -74,12 +82,12 @@ export function TimelineSection() {
       )
 
       // Timeline items stagger animation
-      gsap.fromTo('.timeline-item', 
+      gsap.fromTo('.timeline-item',
         { x: -100, opacity: 0 },
-        { 
-          x: 0, 
-          opacity: 1, 
-          duration: 0.8, 
+        {
+          x: 0,
+          opacity: 1,
+          duration: 0.8,
           stagger: 0.2,
           ease: "power2.out",
           scrollTrigger: {
@@ -92,12 +100,12 @@ export function TimelineSection() {
       )
 
       // Right side items animation
-      gsap.fromTo('.timeline-item-right', 
+      gsap.fromTo('.timeline-item-right',
         { x: 100, opacity: 0 },
-        { 
-          x: 0, 
-          opacity: 1, 
-          duration: 0.8, 
+        {
+          x: 0,
+          opacity: 1,
+          duration: 0.8,
           stagger: 0.2,
           ease: "power2.out",
           scrollTrigger: {
@@ -114,8 +122,8 @@ export function TimelineSection() {
   }, [])
 
   return (
-    <section 
-      id="timeline" 
+    <section
+      id="timeline"
       ref={sectionRef}
       className="section-padding relative overflow-hidden"
     >
@@ -146,22 +154,21 @@ export function TimelineSection() {
         <div className="timeline-container relative">
           {/* Timeline Line */}
           <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-purple-500 to-pink-500 timeline-line transform -translate-x-1/2" />
-          
+
           {/* Timeline Items */}
           <div className="space-y-12">
             {timelineData.map((item, index) => (
               <motion.div
                 key={item.id}
-                className={`timeline-item group relative flex items-center ${
-                  index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
-                }`}
+                className={`timeline-item group relative flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
+                  }`}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
               >
                 {/* Timeline Dot */}
                 <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white dark:border-gray-900 shadow-neon-blue z-10" />
-                
+
                 {/* Content Card */}
                 <div className={`w-5/12 ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
                   <motion.div
@@ -233,13 +240,15 @@ export function TimelineSection() {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <motion.button
-            className="btn-primary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Download Full Resume
-          </motion.button>
+          <a href="https://drive.google.com/file/d/1m_2ujrkDZZKyWpnrMARVWh8lYrdUcWlZ/view" target="_blank" rel="noopener noreferrer">
+            <motion.button
+              className="btn-primary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Download Full Resume
+            </motion.button>
+          </a>
         </motion.div>
       </div>
     </section>

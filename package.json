@@ -19,6 +19,7 @@
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
+    "react-parallax-tilt": "^1.7.304",
     "tailwind-merge": "^2.0.0",
     "zustand": "^4.4.7"
   },

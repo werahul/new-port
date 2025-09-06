@@ -264,7 +264,7 @@ export function HeroSection() {
           {[
             { number: "2+", label: "Years Experience", icon: Rocket },
             { number: "20+", label: "Projects Completed", icon: Code },
-            { number: "100%", label: "Client Satisfaction", icon: Zap }
+            { number: "7+ ", label: "Industries Served", icon: Zap }
           ].map((stat, index) => (
             <motion.div
               key={index}

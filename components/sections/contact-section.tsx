@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Linkedin, Github } from 'lucide-react'
+
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -12,19 +13,19 @@ const contactInfo = [
   {
     icon: Mail,
     title: 'Email',
-    value: 'rahul@example.com',
-    link: 'mailto:rahul@example.com'
+    value: 'rahuldev.kb@gmail.com',
+    link: 'mailto:rahuldev.kb@gmail.com'
   },
   {
     icon: Phone,
     title: 'Phone',
-    value: '+1 (555) 123-4567',
-    link: 'tel:+15551234567'
+    value: '+91 8077464884',
+    link: 'tel:+918077464884'
   },
   {
     icon: MapPin,
     title: 'Location',
-    value: 'San Francisco, CA',
+    value: 'Noida, Uttarpradesh',
     link: '#'
   }
 ]
@@ -64,8 +65,8 @@ export function ContactSection() {
   }
 
   return (
-    <section 
-      id="contact" 
+    <section
+      id="contact"
       ref={sectionRef}
       className="section-padding relative overflow-hidden"
     >
@@ -105,8 +106,8 @@ export function ContactSection() {
                 Let's Connect
               </h3>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
-                I'm always open to discussing new opportunities, interesting projects, 
-                or just having a chat about technology and development. Feel free to 
+                I'm always open to discussing new opportunities, interesting projects,
+                or just having a chat about technology and development. Feel free to
                 reach out through any of the channels below.
               </p>
             </div>
@@ -151,18 +152,26 @@ export function ContactSection() {
                 Follow Me
               </h4>
               <div className="flex space-x-4">
-                {['GitHub', 'LinkedIn', 'Twitter', 'Dribbble'].map((platform, index) => (
+                {[
+                  { icon: Github, href: 'https://github.com/werahul', label: 'GitHub' },
+                  { icon: Linkedin, href: 'https://www.linkedin.com/in/werahul/', label: 'LinkedIn' },
+                  { icon: Mail, href: 'mailto:rahuldev.kb@gmail.com', label: 'Email' }
+                ].map((social, i) => (
                   <motion.a
-                    key={platform}
-                    href="#"
-                    className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300"
-                    whileHover={{ scale: 1.1, y: -2 }}
+                    key={social.label}
+                    href={social.href}
+                    className="w-10 h-10 backdrop-blur-md 
+                    bg-white/20 dark:bg-gray-800/30 border border-white/20 dark:border-gray-700/30 
+                    rounded-lg flex items-center justify-center 
+                    hover:bg-primary hover:text-white transition-all duration-300"
+                    whileHover={{ scale: 1.15, y: -3 }}
                     whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                    transition={{ duration: 0.4, delay: 1 + index * 0.1 }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                    aria-label={social.label}
                   >
-                    <span className="text-sm font-medium">{platform[0]}</span>
+                    <social.icon className="w-5 h-5" />
                   </motion.a>
                 ))}
               </div>

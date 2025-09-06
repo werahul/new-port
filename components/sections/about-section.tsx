@@ -24,9 +24,9 @@ export function AboutSection() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Skill bars animation
-      gsap.fromTo('.skill-bar-fill', 
+      gsap.fromTo('.skill-bar-fill',
         { width: 0 },
-        { 
+        {
           width: (i, el) => el.dataset.percentage + '%',
           duration: 1.5,
           ease: "power2.out",
@@ -41,12 +41,12 @@ export function AboutSection() {
       )
 
       // Text reveal animation
-      gsap.fromTo('.about-text', 
+      gsap.fromTo('.about-text',
         { y: 50, opacity: 0 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 1, 
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
           stagger: 0.2,
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -62,8 +62,8 @@ export function AboutSection() {
   }, [])
 
   return (
-    <section 
-      id="about" 
+    <section
+      id="about"
       ref={sectionRef}
       className="section-padding relative overflow-hidden"
     >
@@ -81,7 +81,7 @@ export function AboutSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="gradient-text">About</span> Me
+            <span className="gradient-text">Who </span> Am I
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-primary to-purple-500 mx-auto rounded-full" />
         </motion.div>
@@ -96,17 +96,13 @@ export function AboutSection() {
           >
             <div className="about-text">
               <h3 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                Passionate Full-Stack Developer
+                Full-Stack Developer Who Lives and Breathes Code
               </h3>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                I'm a dedicated MERN stack developer with a passion for creating exceptional digital experiences. 
-                With expertise in React, Node.js, and modern web technologies, I bring ideas to life through 
-                clean, efficient, and scalable code.
+                I'm a passionate MERN stack developer, and I love creating immersive digital experiences. Using technologies like React, Node.js and other modern frameworks, I bring ideas to life with scalable, efficient code.
               </p>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-                My journey in web development started with curiosity and has evolved into a deep understanding 
-                of both frontend and backend technologies. I believe in writing code that not only works but 
-                also delights users and stands the test of time.
+                I started my journey into web development from a place of curiosity and have organically cultivated a true understanding of both the frontend and backend. I believe that writing good code is more than about functions - it is about creating an experience that is clean, long-lasting, and also fun to use.€
               </p>
             </div>
 
@@ -133,7 +129,7 @@ export function AboutSection() {
             <h3 className="text-2xl font-semibold mb-8 text-gray-800 dark:text-gray-200">
               Technical Skills
             </h3>
-            
+
             <div className="space-y-6">
               {skills.map((skill, index) => {
                 const Icon = skill.icon
@@ -158,7 +154,7 @@ export function AboutSection() {
                         {skill.percentage}%
                       </span>
                     </div>
-                    
+
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                       <motion.div
                         className={`skill-bar-fill h-full bg-gradient-to-r ${skill.color} rounded-full`}
@@ -190,7 +186,7 @@ export function AboutSection() {
               Building responsive, modern web applications with cutting-edge technologies
             </p>
           </div>
-          
+
           <div className="text-center p-6 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
             <Smartphone className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Mobile-First</h4>
@@ -198,7 +194,7 @@ export function AboutSection() {
               Creating seamless experiences across all devices and screen sizes
             </p>
           </div>
-          
+
           <div className="text-center p-6 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
             <Zap className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Performance</h4>

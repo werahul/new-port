@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'about', label: 'About', icon: User },
-  { id: 'projects', label: 'Projects', icon: Briefcase },
+  { id: 'works', label: 'Works', icon: Briefcase },
   { id: 'timeline', label: 'Timeline', icon: Clock },
   { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
 ]
