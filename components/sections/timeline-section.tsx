@@ -145,7 +145,7 @@ export function TimelineSection() {
             Work <span className="gradient-text">Timeline</span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-primary to-purple-500 mx-auto rounded-full mb-8" />
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="md:text-xl tex-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             My professional journey and career milestones
           </p>
         </motion.div>
@@ -153,26 +153,26 @@ export function TimelineSection() {
         {/* Timeline */}
         <div className="timeline-container relative">
           {/* Timeline Line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-purple-500 to-pink-500 timeline-line transform -translate-x-1/2" />
+          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-purple-500 to-pink-500 timeline-line md:-translate-x-1/2" />
 
           {/* Timeline Items */}
           <div className="space-y-12">
             {timelineData.map((item, index) => (
               <motion.div
                 key={item.id}
-                className={`timeline-item group relative flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
+                className={`timeline-item group relative flex flex-col md:flex-row md:items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
                   }`}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
               >
                 {/* Timeline Dot */}
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white dark:border-gray-900 shadow-neon-blue z-10" />
+                <div className="absolute left-1 md:left-1/2 md:-translate-x-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white dark:border-gray-900 shadow-neon-blue z-10" />
 
                 {/* Content Card */}
-                <div className={`w-5/12 ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
+                <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8'}`}>
                   <motion.div
-                    className="glass-effect rounded-2xl p-6 hover:scale-105 transition-transform duration-300"
+                    className="glass-effect rounded-2xl p-0 md:p-6 hover:scale-105 transition-transform duration-300"
                     whileHover={{ y: -5 }}
                   >
                     {/* Year Badge */}

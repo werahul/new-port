@@ -29,7 +29,7 @@ export function Footer() {
   return (
     <footer className="relative rounded-tl-[50px] rounded-tr-[50px] 
       backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 
-      border-t border-white/20 dark:border-gray-700/30 overflow-hidden">
+      border-t border-white/20 dark:border-gray-700/30 overflow-hidden p-5">
 
       {/* Gradient blobs */}
       <div className="absolute inset-0">

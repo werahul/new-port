@@ -95,14 +95,14 @@ export function AboutSection() {
             className="space-y-6"
           >
             <div className="about-text">
-              <h3 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                Full-Stack Developer Who Lives and Breathes Code
+              <h3 className="lg:text-3xl text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                Full-Stack Developer <br /> Who Lives and Breathes Code
               </h3>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                 I'm a passionate MERN stack developer, and I love creating immersive digital experiences. Using technologies like React, Node.js and other modern frameworks, I bring ideas to life with scalable, efficient code.
               </p>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-                I started my journey into web development from a place of curiosity and have organically cultivated a true understanding of both the frontend and backend. I believe that writing good code is more than about functions - it is about creating an experience that is clean, long-lasting, and also fun to use.€
+                I started my journey into web development from a place of curiosity and have organically cultivated a true understanding of both the frontend and backend. I believe that writing good code is more than about functions - it is about creating an experience that is clean, long-lasting, and also fun to use.
               </p>
             </div>
 
@@ -110,11 +110,11 @@ export function AboutSection() {
             <div className="grid grid-cols-2 gap-6 about-text">
               <div className="text-center p-4 rounded-xl glass-effect">
                 <div className="text-3xl font-bold text-primary mb-2">2+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Years Experience</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Years <br className="md:hidden" /> Experience</div>
               </div>
               <div className="text-center p-4 rounded-xl glass-effect">
                 <div className="text-3xl font-bold text-primary mb-2">20+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Projects Completed</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Projects <br className="md:hidden" /> Completed</div>
               </div>
             </div>
           </motion.div>
@@ -179,7 +179,7 @@ export function AboutSection() {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="mt-16 grid md:grid-cols-3 gap-8 about-text"
         >
-          <div className="text-center p-6 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
+          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
             <Globe className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Web Development</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -187,7 +187,7 @@ export function AboutSection() {
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
+          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
             <Smartphone className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Mobile-First</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -195,7 +195,7 @@ export function AboutSection() {
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
+          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
             <Zap className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Performance</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">

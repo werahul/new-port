@@ -45,12 +45,12 @@ const works = [
     image:
       '/proGenvr.png',
     tags: [
-      'Nex.js,',
+      'Nex.js',
       ' TailwindCSS',
       'TypeScript',
       ' React Quill',
       'React Redux',
-      ' WaveSurfer.js,',
+      ' WaveSurfer.js',
       'Three.js',
       'Video.js',
       'Django',
@@ -66,7 +66,7 @@ const works = [
     image:
       '/proBrandit.png',
     tags: [
-      'Next.js,',
+      'Next.js',
       ' TailwindCSS',
       ' Framer Motion',
       'EmailJs',
@@ -83,7 +83,7 @@ const works = [
       'Developed a responsive landing page using React, TailwindCSS, and Framer Motion, implementing scroll-based UI, animated metrics, and clean component structure to highlight 30,000+ clients and key platform features.',
     image:
       '/proAc.png',
-    tags: ['React.js,', ' TailwindCSS'],
+    tags: ['React.js', ' TailwindCSS'],
     // type: 'Company',
     link: 'https://www.acagarwal.com/',
   },
@@ -95,7 +95,7 @@ const works = [
     image:
       '/proHouse.png',
     tags: [
-      'Next.js,',
+      'Next.js',
       ' TailwindCSS',
       'TypeScript',
       'Material UI',
@@ -307,7 +307,7 @@ export function ProjectsSection() {
                   {/* Button */}
                   <motion.a
                     href={work.link}
-                    className="relative inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-primary to-purple-500 text-white rounded-xl font-medium overflow-hidden group-hover:shadow-neon-blue transition-all"
+                    className="relative inline-flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-500 rounded-xl font-medium overflow-hidden group-hover:shadow-neon-blue transition-all"
                     target='_blank'
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

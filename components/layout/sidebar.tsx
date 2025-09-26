@@ -187,7 +187,7 @@ export function Sidebar() {
           >
             <div className="p-6 h-full flex flex-col">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-xl font-bold gradient-text">Rahul</h2>
+                <h2 className="text-2xl font-bold gradient-text">Rahul</h2>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
@@ -209,7 +209,7 @@ export function Sidebar() {
                         "w-full flex items-center space-x-3 p-4 rounded-xl transition-all duration-300",
                         isActive 
                           ? "bg-primary/20 text-primary" 
-                          : "text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-primary/10"
+                          : "text-black dark:text-gray-400 hover:text-primary hover:bg-primary/10"
                       )}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}

@@ -195,7 +195,7 @@ export function HeroSection() {
 
         {/* Title */}
         <motion.h2
-          className="hero-title text-2xl md:text-3xl lg:text-4xl font-semibold text-slate-600 dark:text-slate-300 mb-8"
+          className="hero-title text-xl md:text-3xl lg:text-4xl font-semibold text-slate-600 dark:text-slate-300 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
@@ -208,7 +208,7 @@ export function HeroSection() {
 
         {/* Description */}
         <motion.p
-          className="hero-description text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-4xl mx-auto mb-12 leading-relaxed"
+          className="hero-description text-[14px] md:text-xl text-slate-500 dark:text-slate-400 max-w-4xl mx-auto mb-12 leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
@@ -227,7 +227,8 @@ export function HeroSection() {
                 boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)"
               }}
               whileTap={{ scale: 0.95 }}
-              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group relative md:px-8 md:py-4 px-5
+py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Download className="w-5 h-5 group-hover:animate-bounce" />
@@ -244,7 +245,8 @@ export function HeroSection() {
               boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)"
             }}
             whileTap={{ scale: 0.95 }}
-            className="group px-8 py-4 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-200 dark:border-slate-700 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
+            className="group md:px-8 md:py-4 px-5
+py-3 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-200 dark:border-slate-700 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
           >
             <span className="flex items-center gap-2">
               <Mail className="w-5 h-5 group-hover:animate-pulse" />
@@ -288,7 +290,7 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:block"
         >
           <motion.div
             animate={{ y: [0, 10, 0] }}

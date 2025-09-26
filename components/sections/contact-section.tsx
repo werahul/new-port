@@ -88,7 +88,7 @@ export function ContactSection() {
             Get In <span className="gradient-text">Touch</span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-primary to-purple-500 mx-auto rounded-full mb-8" />
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="md:text-xl text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Let's discuss your next project and bring your ideas to life
           </p>
         </motion.div>
@@ -123,7 +123,7 @@ export function ContactSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                    className="group flex items-center space-x-4 p-4 rounded-xl glass-effect hover:scale-105 transition-all duration-300"
+                    className="group flex items-center space-x-4 md:p-4 rounded-xl glass-effect hover:scale-105 transition-all duration-300"
                     whileHover={{ x: 10 }}
                   >
                     <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
@@ -183,7 +183,7 @@ export function ContactSection() {
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="glass-effect rounded-2xl p-8"
+            className="glass-effect rounded-2xl md:p-8"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
