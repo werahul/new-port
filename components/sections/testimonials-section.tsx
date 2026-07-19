@@ -42,7 +42,7 @@ const testimonials = [
     role: 'Senior Developer',
     company: 'WebSolutions',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    content: 'Rahul is a true professional who writes clean, maintainable code. His knowledge of the MERN stack and modern development practices is impressive. Highly recommended!',
+    content: 'Rahul is a true professional who writes clean, maintainable code. His knowledge of frontend engineering and modern development practices is impressive. Highly recommended!',
     rating: 5
   },
   {

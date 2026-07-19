@@ -11,11 +11,27 @@ gsap.registerPlugin(ScrollTrigger)
 const timelineData = [
   {
     "id": 1,
-    "year": "2023 - Present",
-    "title": "Full-Stack Developer",
+    "year": "Oct 2025 - Present",
+    "title": "Frontend Developer",
+    "company": "Jasper Colin",
+    "location": "Noida, India",
+    "description": "B2B Market Research, Data Insights & Analytics Company",
+    "technologies": ["React.js", "Next.js", "TailwindCSS", "Micro-frontends"],
+    "achievements": [
+      "Building and scaling a CRM platform composed of three independent applications (Admin, Client, Supplier) using a micro-frontend architecture, improving modularity and independent deployment across teams.",
+      "Architected a shared reusable UI component library used across all three micro-frontends, cutting duplicate code and reducing new-feature development time by an estimated 40%.",
+      "Built the frontend for an AI-powered lead generation product, integrating UI workflows with backend intelligence services to support user acquisition and automation.",
+      "Designed and maintain the company's marketing website, shipping high-performance, campaign-ready pages that improved page load speed and Lighthouse performance score to 98%.",
+      "Developed and maintained multiple production frontend modules with React.js, Next.js, and TailwindCSS, ensuring consistent performance and seamless integration across applications."
+    ]
+  },
+  {
+    "id": 2,
+    "year": "Aug 2023 - Sept 2025",
+    "title": "Frontend Engineer",
     "company": "Melange Digital",
     "location": "Goa - Remote",
-    "description": "Leading the development of enterprise-scale web applications with a focus on scalability, performance, and best practices in full-stack development.",
+    "description": "Leading the development of enterprise-scale web applications with a focus on scalability, performance, and best practices in frontend engineering.",
     "technologies": ["React", "Next.js", "Node.js", "AWS", "Firebase"],
     "achievements": [
       "Delivered 15+ client projects end-to-end across various industries",
@@ -24,12 +40,12 @@ const timelineData = [
     ]
   },
   {
-    "id": 2,
+    "id": 3,
     "year": "Jan 2023 - Jun 2023",
     "title": "Web Development Intern",
     "company": "Melange Digital",
     "location": "Goa - Remote",
-    "description": "Assisted in developing responsive web applications while learning full-stack practices, collaborating with senior developers, and contributing to real client projects.",
+    "description": "Assisted in developing responsive web applications while learning frontend engineering practices, collaborating with senior developers, and contributing to real client projects.",
     "technologies": ["React", "Node.js", "Express", "TailwindCSS", "MongoDB"],
     "achievements": [
       "Contributed to 5+ client projects in frontend and backend development",
@@ -55,7 +71,7 @@ const timelineData = [
   //   location: 'Remote',
   //   description: 'Started my journey in web development, learning modern technologies and best practices. Contributed to various client projects.',
   //   technologies: ['JavaScript', 'HTML', 'CSS', 'React', 'Node.js'],
-  //   achievements: ['Completed 20+ projects', 'Learned full-stack development', 'Earned AWS certification']
+  //   achievements: ['Completed 20+ projects', 'Learned frontend engineering', 'Earned AWS certification']
   // }
 ]
 
@@ -240,7 +256,7 @@ export function TimelineSection() {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <a href="https://drive.google.com/file/d/1m_2ujrkDZZKyWpnrMARVWh8lYrdUcWlZ/view" target="_blank" rel="noopener noreferrer">
+          <a href="https://drive.google.com/file/d/1mN0sqLF4eYY3gXfaaZpF_dUspVTstk9p/view?usp=sharing" target="_blank" rel="noopener noreferrer">
             <motion.button
               className="btn-primary"
               whileHover={{ scale: 1.05 }}

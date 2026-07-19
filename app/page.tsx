@@ -2,6 +2,7 @@ import { HeroSection } from '@/components/sections/hero-section'
 import { AboutSection } from '@/components/sections/about-section'
 import { ProjectsSection } from '@/components/sections/projects-section'
 import { TimelineSection } from '@/components/sections/timeline-section'
+import { SecuritySection } from '@/components/sections/security-section'
 import { TestimonialsSection } from '@/components/sections/testimonials-section'
 import { ContactSection } from '@/components/sections/contact-section'
 import { Footer } from '@/components/layout/footer'
@@ -13,7 +14,8 @@ export default function Home() {
       <AboutSection />
       <ProjectsSection />
       <TimelineSection />
-    { /* <TestimonialsSection /> */}
+      <SecuritySection />
+      { /* <TestimonialsSection /> */}
       <ContactSection />
       <Footer />
     </>

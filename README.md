@@ -1,4 +1,4 @@
-# Rahul's Portfolio - MERN Stack Developer
+# Rahul's Portfolio - Frontend Engineer
 
 A stunning, animated portfolio website built with Next.js, featuring modern animations, smooth scrolling, and a premium design aesthetic.
 

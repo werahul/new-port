@@ -96,10 +96,10 @@ export function AboutSection() {
           >
             <div className="about-text">
               <h3 className="lg:text-3xl text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                Full-Stack Developer <br /> Who Lives and Breathes Code
+                Frontend Engineer <br /> Who Lives and Breathes Code
               </h3>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                I'm a passionate MERN stack developer, and I love creating immersive digital experiences. Using technologies like React, Node.js and other modern frameworks, I bring ideas to life with scalable, efficient code.
+                I'm a passionate Frontend Engineer, and I love creating immersive digital experiences. Using technologies like React, Node.js and other modern frameworks, I bring ideas to life with scalable, efficient code.
               </p>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
                 I started my journey into web development from a place of curiosity and have organically cultivated a true understanding of both the frontend and backend. I believe that writing good code is more than about functions - it is about creating an experience that is clean, long-lasting, and also fun to use.
@@ -109,7 +109,7 @@ export function AboutSection() {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-6 about-text">
               <div className="text-center p-4 rounded-xl glass-effect">
-                <div className="text-3xl font-bold text-primary mb-2">2+</div>
+                <div className="text-3xl font-bold text-primary mb-2">3+</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Years <br className="md:hidden" /> Experience</div>
               </div>
               <div className="text-center p-4 rounded-xl glass-effect">

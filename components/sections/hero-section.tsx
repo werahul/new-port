@@ -178,7 +178,7 @@ export function HeroSection() {
         >
           <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400 text-sm font-semibold border border-blue-500/20 backdrop-blur-sm">
             <Sparkles className="w-4 h-4" />
-            MERN Stack Developer
+            Frontend Engineer
             <Sparkles className="w-4 h-4" />
           </span>
         </motion.div>
@@ -213,14 +213,14 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
         >
-          Full-stack developer passionate about creating exceptional web applications.
+          Frontend Engineer passionate about creating exceptional web applications.
           Specializing in React, Node.js, and cutting-edge technologies to build
           scalable, performant, and user-centric solutions.
         </motion.p>
 
         {/* Action Buttons */}
         <div className="hero-buttons flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <a href="https://drive.google.com/file/d/1m_2ujrkDZZKyWpnrMARVWh8lYrdUcWlZ/view" target="_blank" rel="noopener noreferrer">
+          <a href="https://drive.google.com/file/d/1mN0sqLF4eYY3gXfaaZpF_dUspVTstk9p/view?usp=sharing" target="_blank" rel="noopener noreferrer">
             <motion.button
               whileHover={{
                 scale: 1.05,
@@ -239,20 +239,20 @@ py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold round
             </motion.button>
           </a>
           <a href="mailto:rahuldev.kb@gmail.com">
-          <motion.button
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)"
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="group md:px-8 md:py-4 px-5
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="group md:px-8 md:py-4 px-5
 py-3 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-200 dark:border-slate-700 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
-          >
-            <span className="flex items-center gap-2">
-              <Mail className="w-5 h-5 group-hover:animate-pulse" />
-              Let's Connect
-            </span>
-          </motion.button>
+            >
+              <span className="flex items-center gap-2">
+                <Mail className="w-5 h-5 group-hover:animate-pulse" />
+                Let's Connect
+              </span>
+            </motion.button>
           </a>
         </div>
 
@@ -264,7 +264,7 @@ py-3 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-se
           transition={{ duration: 0.8, delay: 0.7 }}
         >
           {[
-            { number: "2+", label: "Years Experience", icon: Rocket },
+            { number: "3+", label: "Years Experience", icon: Rocket },
             { number: "20+", label: "Projects Completed", icon: Code },
             { number: "7+ ", label: "Industries Served", icon: Zap }
           ].map((stat, index) => (

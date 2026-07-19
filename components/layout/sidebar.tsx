@@ -13,7 +13,8 @@ import {
   Sun, 
   Moon,
   Menu,
-  X
+  X,
+  Shield
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -22,6 +23,7 @@ const navItems = [
   { id: 'about', label: 'About', icon: User },
   { id: 'works', label: 'Works', icon: Briefcase },
   { id: 'timeline', label: 'Timeline', icon: Clock },
+  { id: 'security', label: 'Security', icon: Shield },
   { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
 ]
 
@@ -57,11 +59,11 @@ export function Sidebar() {
     <>
       {/* Floating Top Navbar */}
       <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ y: -100, x: "-50%", opacity: 0 }}
+        animate={{ y: 0, x: "-50%", opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className={cn(
-          "fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden lg:block",
+          "fixed top-6 left-1/2 z-50 hidden lg:block",
           scrolled && "top-4"
         )}
       >

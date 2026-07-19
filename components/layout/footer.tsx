@@ -66,7 +66,7 @@ export function Footer() {
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Rahul Kumar</h3>
             </div>
             <p className="text-gray-700 dark:text-gray-300 max-w-sm">
-              Passionate MERN stack developer crafting smooth, beautiful, and innovative digital experiences.
+              Passionate Frontend Engineer crafting smooth, beautiful, and innovative digital experiences.
             </p>
             <div className="flex space-x-4">
               {[

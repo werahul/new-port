@@ -8,23 +8,23 @@ import { Sidebar } from '@/components/layout/sidebar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Rahul - MERN Stack Developer',
-  description: 'Full-stack developer specializing in React, Node.js, and modern web technologies. Creating exceptional digital experiences with clean, efficient code.',
-  keywords: ['MERN Stack', 'React', 'Node.js', 'Full Stack Developer', 'Web Development'],
+  title: 'Rahul - Frontend Engineer',
+  description: 'Frontend Engineer specializing in React, Node.js, and modern web technologies. Creating exceptional digital experiences with clean, efficient code.',
+  keywords: ['Frontend Engineer', 'React', 'Node.js', 'Web Development'],
   authors: [{ name: 'Rahul' }],
   creator: 'Rahul',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://rahul-portfolio.com',
-    title: 'Rahul - MERN Stack Developer',
-    description: 'Full-stack developer specializing in React, Node.js, and modern web technologies.',
+    title: 'Rahul - Frontend Engineer',
+    description: 'Frontend Engineer specializing in React, Node.js, and modern web technologies.',
     siteName: 'Rahul Portfolio',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Rahul - MERN Stack Developer',
-    description: 'Full-stack developer specializing in React, Node.js, and modern web technologies.',
+    title: 'Rahul - Frontend Engineer',
+    description: 'Frontend Engineer specializing in React, Node.js, and modern web technologies.',
   },
 }
 
