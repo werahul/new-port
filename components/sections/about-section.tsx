@@ -1,209 +1,110 @@
-'use client'
+import { ArrowDown } from 'lucide-react'
+import { Section, SectionHeading } from '@/components/primitives'
+import { ScrollReveal } from '@/components/motion'
+import { profile } from '@/content/profile'
 
-import { useEffect, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Code, Database, Globe, Smartphone, Zap, Users } from 'lucide-react'
-
-gsap.registerPlugin(ScrollTrigger)
-
-const skills = [
-  { name: 'React/Next.js', percentage: 95, icon: Code, color: 'from-blue-500 to-cyan-500' },
-  { name: 'Node.js/Express', percentage: 90, icon: Database, color: 'from-green-500 to-emerald-500' },
-  { name: 'TypeScript', percentage: 88, icon: Zap, color: 'from-blue-600 to-indigo-600' },
-  { name: 'MongoDB/PostgreSQL', percentage: 80, icon: Database, color: 'from-purple-500 to-pink-500' },
-  { name: 'UI/UX Development', percentage: 92, icon: Smartphone, color: 'from-orange-500 to-red-500' },
-  { name: 'Team Collaboration', percentage: 90, icon: Users, color: 'from-teal-500 to-cyan-500' },
+/**
+ * Three ways of working, stated plainly. Previously an icon-card triptych —
+ * the single most template-like block on the page. The claims are unchanged;
+ * only the form is, from boxed cards to a ruled editorial index.
+ */
+const principles = [
+  {
+    title: 'Architecture',
+    copy: 'Micro-frontends, shared component libraries and boundaries that let teams ship independently without drift.',
+  },
+  {
+    title: 'Performance',
+    copy: 'Rendering strategy, asset discipline and measurement — recent work took a Lighthouse score to 98.',
+  },
+  {
+    title: 'Product thinking',
+    copy: 'Deciding what to build and what to leave out, so the interface earns its complexity.',
+  },
 ]
 
 export function AboutSection() {
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" })
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Skill bars animation
-      gsap.fromTo('.skill-bar-fill',
-        { width: 0 },
-        {
-          width: (i, el) => el.dataset.percentage + '%',
-          duration: 1.5,
-          ease: "power2.out",
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: '.skills-container',
-            start: "top 80%",
-            end: "bottom 20%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      )
-
-      // Text reveal animation
-      gsap.fromTo('.about-text',
-        { y: 50, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          stagger: 0.2,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 80%",
-            end: "bottom 20%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      )
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
   return (
-    <section
-      id="about"
-      ref={sectionRef}
-      className="section-padding relative overflow-hidden"
-    >
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-0 w-80 h-80 bg-gradient-to-r from-pink-500/10 to-primary/10 rounded-full blur-3xl" />
-      </div>
+    <Section id="about" accent="cobalt" spacing="loose" atmosphere>
+      <SectionHeading
+        index="01"
+        label="About"
+        question="How do I think?"
+        title="Frontend depth, full-stack range"
+        description="I started in the browser and worked outward — into APIs, data models and the architecture that keeps a product coherent as it grows."
+      />
 
-      <div className="container-custom relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="gradient-text">Who </span> Am I
-          </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-primary to-purple-500 mx-auto rounded-full" />
-        </motion.div>
-
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Column - Text Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-6"
+      {/* The quiet beat of the page: one statement, given room. */}
+      <ScrollReveal
+        variant="fade-up"
+        className="mt-16 grid gap-10 lg:mt-24 lg:grid-cols-12 lg:gap-16"
+      >
+        <p className="text-pretty text-[1.35rem] leading-[1.5] tracking-tight text-foreground/90 lg:col-span-7 lg:text-[1.6rem]">
+          {profile.summary}
+        </p>
+        <div className="space-y-5 text-[0.975rem] leading-relaxed text-muted-foreground lg:col-span-4 lg:col-start-9 lg:pt-2">
+          <p>
+            I care about code that lasts: clear boundaries, honest naming and
+            interfaces that stay calm under real data. Good engineering, to me,
+            is as much about what you decide not to build.
+          </p>
+          <a
+            href="#skills"
+            className="type-metadata inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
           >
-            <div className="about-text">
-              <h3 className="lg:text-3xl text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                Frontend Engineer <br /> Who Lives and Breathes Code
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                I'm a passionate Frontend Engineer, and I love creating immersive digital experiences. Using technologies like React, Node.js and other modern frameworks, I bring ideas to life with scalable, efficient code.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-                I started my journey into web development from a place of curiosity and have organically cultivated a true understanding of both the frontend and backend. I believe that writing good code is more than about functions - it is about creating an experience that is clean, long-lasting, and also fun to use.
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-6 about-text">
-              <div className="text-center p-4 rounded-xl glass-effect">
-                <div className="text-3xl font-bold text-primary mb-2">3+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Years <br className="md:hidden" /> Experience</div>
-              </div>
-              <div className="text-center p-4 rounded-xl glass-effect">
-                <div className="text-3xl font-bold text-primary mb-2">20+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Projects <br className="md:hidden" /> Completed</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Column - Skills */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="skills-container"
-          >
-            <h3 className="text-2xl font-semibold mb-8 text-gray-800 dark:text-gray-200">
-              Technical Skills
-            </h3>
-
-            <div className="space-y-6">
-              {skills.map((skill, index) => {
-                const Icon = skill.icon
-                return (
-                  <motion.div
-                    key={skill.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                    className="group"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg bg-gradient-to-r ${skill.color} text-white group-hover:scale-110 transition-transform duration-300`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
-                          {skill.name}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {skill.percentage}%
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                      <motion.div
-                        className={`skill-bar-fill h-full bg-gradient-to-r ${skill.color} rounded-full`}
-                        data-percentage={skill.percentage}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${skill.percentage}%` }}
-                        transition={{ duration: 1.5, delay: 0.8 + index * 0.1 }}
-                        viewport={{ once: true }}
-                      />
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </motion.div>
+            See the full capability map
+            <ArrowDown className="h-3.5 w-3.5" />
+          </a>
         </div>
+      </ScrollReveal>
 
-        {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-16 grid md:grid-cols-3 gap-8 about-text"
-        >
-          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
-            <Globe className="w-8 h-8 text-primary mx-auto mb-4" />
-            <h4 className="font-semibold mb-2">Web Development</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Building responsive, modern web applications with cutting-edge technologies
-            </p>
+      {/* Figures at a scale that reads as confidence rather than a stat strip. */}
+      <ScrollReveal
+        stagger
+        variant="fade-up"
+        distance={18}
+        className="mt-20 grid border-t border-line lg:mt-28 sm:grid-cols-3"
+      >
+        {profile.stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="border-b border-line py-8 sm:border-b-0 sm:border-r sm:px-8 sm:py-10 sm:last:border-r-0 sm:first:pl-0 sm:last:pr-0"
+          >
+            <div className="font-display text-[3.5rem] font-medium leading-none tracking-tighter text-foreground lg:text-[4.5rem]">
+              {stat.value}
+            </div>
+            <div className="type-metadata mt-4 max-w-[22ch] leading-relaxed">
+              {stat.label}
+            </div>
           </div>
+        ))}
+      </ScrollReveal>
 
-          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
-            <Smartphone className="w-8 h-8 text-primary mx-auto mb-4" />
-            <h4 className="font-semibold mb-2">Mobile-First</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Creating seamless experiences across all devices and screen sizes
+      <ScrollReveal
+        as="ol"
+        stagger
+        variant="fade-up"
+        distance={22}
+        className="mt-20 grid gap-x-10 gap-y-12 lg:mt-28 md:grid-cols-3"
+      >
+        {principles.map((p, i) => (
+          <li key={p.title} className="relative border-t border-line pt-7">
+            <span
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-px w-12 bg-accent"
+            />
+            <span className="type-metadata type-metadata-accent">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 className="mt-4 text-[1.2rem] font-semibold tracking-tight text-foreground">
+              {p.title}
+            </h3>
+            <p className="mt-3 text-[0.95rem] leading-relaxed text-muted-foreground">
+              {p.copy}
             </p>
-          </div>
-
-          <div className="text-center px-6 py-10 rounded-xl glass-effect hover:scale-105 transition-transform duration-300">
-            <Zap className="w-8 h-8 text-primary mx-auto mb-4" />
-            <h4 className="font-semibold mb-2">Performance</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Optimizing for speed, accessibility, and user experience
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    </section>
+          </li>
+        ))}
+      </ScrollReveal>
+    </Section>
   )
-} 
+}

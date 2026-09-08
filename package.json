@@ -9,18 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@splinetool/react-spline": "^2.2.6",
-    "@splinetool/runtime": "^0.9.508",
     "clsx": "^2.0.0",
-    "framer-motion": "^10.16.16",
-    "gsap": "^3.12.2",
+    "gsap": "^3.13.0",
     "lenis": "^1.3.8",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
-    "react-parallax-tilt": "^1.7.304",
     "tailwind-merge": "^2.0.0",
+    "three": "^0.161.0",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
@@ -28,6 +25,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "^0.161.2",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",

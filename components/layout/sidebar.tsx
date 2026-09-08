@@ -1,251 +1,316 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Sun, Moon, Menu, X } from 'lucide-react'
 import { useTheme } from '@/components/ui/theme-provider'
 import { useUIStore } from '@/lib/store'
-import { 
-  Home, 
-  User, 
-  Briefcase, 
-  Clock, 
-  MessageSquare, 
-  Sun, 
-  Moon,
-  Menu,
-  X,
-  Shield
-} from 'lucide-react'
+import { getLenis, scrollToId } from '@/components/ui/smooth-scroll'
+import { navItems } from '@/content/nav'
+import { socials } from '@/content/profile'
 import { cn } from '@/lib/utils'
 
-const navItems = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'about', label: 'About', icon: User },
-  { id: 'works', label: 'Works', icon: Briefcase },
-  { id: 'timeline', label: 'Timeline', icon: Clock },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
-]
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+/** Focusable descendants, in DOM order, for the drawer's focus trap. */
+function focusables(root: HTMLElement) {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((el) => el.offsetParent !== null)
+}
 
 export function Sidebar() {
   const { theme, toggleTheme } = useTheme()
-  const { currentSection, setCurrentSection, isSidebarOpen, setSidebarOpen } = useUIStore()
+  const { currentSection, setCurrentSection, isSidebarOpen, setSidebarOpen } =
+    useUIStore()
   const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
+  const pathname = usePathname()
+  const onHome = pathname === '/'
+
+  const railRef = useRef<HTMLDivElement>(null)
+  const pillRef = useRef<HTMLSpanElement>(null)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const openerRef = useRef<HTMLButtonElement>(null)
+
   useEffect(() => {
     setMounted(true)
-    
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 40)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setCurrentSection(sectionId)
-      setSidebarOpen(false)
-    }
-  }
+  // Scroll-spy — only meaningful on the home page, where the sections exist.
+  useEffect(() => {
+    if (!onHome) return
+    const sections = navItems
+      .map((item) => document.getElementById(item.id))
+      .filter((el): el is HTMLElement => Boolean(el))
+    if (!sections.length) return
 
-  if (!mounted) return null
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible?.target?.id) setCurrentSection(visible.target.id)
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5, 1] },
+    )
+    sections.forEach((s) => observer.observe(s))
+    return () => observer.disconnect()
+  }, [setCurrentSection, onHome])
+
+  // Slide the active pill to the current item. Replaces framer-motion's
+  // layoutId with one measured transform — no layout animation runtime.
+  useIsoLayoutEffect(() => {
+    const rail = railRef.current
+    const pill = pillRef.current
+    if (!rail || !pill) return
+    const active = rail.querySelector<HTMLElement>('[data-nav-active="true"]')
+    if (!active || !onHome) {
+      pill.style.opacity = '0'
+      return
+    }
+    pill.style.opacity = '1'
+    pill.style.width = `${active.offsetWidth}px`
+    pill.style.transform = `translateX(${active.offsetLeft}px)`
+  }, [currentSection, mounted, onHome])
+
+  // Drawer: lock scroll (Lenis included), trap focus, Esc to close, restore focus.
+  useEffect(() => {
+    if (!isSidebarOpen) return
+    const drawer = drawerRef.current
+    const opener = openerRef.current
+    const previouslyFocused = document.activeElement as HTMLElement | null
+
+    // `overflow: hidden` alone does not stop Lenis — it drives scroll itself.
+    const lenis = getLenis()
+    lenis?.stop()
+    document.body.style.overflow = 'hidden'
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSidebarOpen(false)
+        return
+      }
+      if (e.key !== 'Tab' || !drawer) return
+      const items = focusables(drawer)
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+
+    const raf = requestAnimationFrame(() => {
+      if (drawer) focusables(drawer)[0]?.focus()
+    })
+    window.addEventListener('keydown', onKey)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+      lenis?.start()
+      // Return focus to the control that opened the drawer.
+      ;(opener ?? previouslyFocused)?.focus?.()
+    }
+  }, [isSidebarOpen, setSidebarOpen])
+
+  /**
+   * Nav items are real anchors. On the home page we intercept and hand the
+   * scroll to Lenis; anywhere else (a case study) the `/#id` href navigates
+   * home properly — previously these were buttons calling `scrollToId` for
+   * sections that don't exist off the home page, so the nav was simply dead.
+   */
+  const onNavClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      setSidebarOpen(false)
+      if (!onHome) return // let the browser navigate to /#id
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+      e.preventDefault()
+      scrollToId(id)
+      setCurrentSection(id)
+      history.replaceState(null, '', `#${id}`)
+    },
+    [onHome, setCurrentSection, setSidebarOpen],
+  )
+
+  const hrefFor = (id: string) => (onHome ? `#${id}` : `/#${id}`)
+  const ThemeIcon = theme === 'light' ? Moon : Sun
 
   return (
     <>
-      {/* Floating Top Navbar */}
-      <motion.div
-        initial={{ y: -100, x: "-50%", opacity: 0 }}
-        animate={{ y: 0, x: "-50%", opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className={cn(
-          "fixed top-6 left-1/2 z-50 hidden lg:block",
-          scrolled && "top-4"
-        )}
-      >
-        <motion.div
+      {/* Desktop floating bar */}
+      <div className="fixed left-1/2 top-6 z-50 hidden -translate-x-1/2 lg:block">
+        <nav
+          aria-label="Primary"
           className={cn(
-            "glass-effect rounded-2xl px-6 py-3 backdrop-blur-xl border border-white/20 dark:border-white/10 transition-all duration-300",
-            scrolled && "shadow-lg shadow-black/10"
+            'animate-fade-in-down flex items-center gap-1 surface rounded-full px-2 py-2 transition-shadow duration-300 ease-editorial',
+            scrolled && 'shadow-soft',
           )}
-          animate={{
-            scale: scrolled ? 0.95 : 1,
-            y: scrolled ? -5 : 0
-          }}
-          transition={{ duration: 0.3 }}
         >
-          <nav className="flex items-center space-x-1">
-            {navItems.map((item, index) => {
-              const Icon = item.icon
-              const isActive = currentSection === item.id
-              
+          <Link
+            href="/"
+            className="px-3 type-metadata text-foreground"
+            aria-label="Home"
+          >
+            R<span className="text-muted-foreground">/</span>
+          </Link>
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+
+          <div ref={railRef} className="relative flex items-center gap-1">
+            {/* the sliding active pill */}
+            <span
+              ref={pillRef}
+              aria-hidden
+              className="absolute inset-y-0 left-0 -z-10 rounded-full border border-accent/25 bg-surface-3 opacity-0 shadow-edge transition-[transform,width,opacity] duration-500 ease-editorial motion-reduce:transition-none"
+            />
+            {navItems.map((item) => {
+              const isActive = onHome && currentSection === item.id
               return (
-                <motion.button
+                <Link
                   key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  href={hrefFor(item.id)}
+                  data-nav-active={isActive}
+                  aria-current={isActive ? 'true' : undefined}
+                  onClick={(e) => onNavClick(e, item.id)}
                   className={cn(
-                    "relative px-4 py-2 rounded-xl transition-all duration-300 group flex items-center space-x-2",
-                    isActive 
-                      ? "bg-primary/20 text-primary shadow-neon-blue" 
-                      : "text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-primary/10"
+                    'rounded-full px-3.5 py-1.5 text-[0.82rem] font-medium tracking-tight transition-colors duration-300',
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm font-medium hidden sm:block">{item.label}</span>
-                  
-                  {/* Active indicator */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="absolute inset-0 bg-primary/20 rounded-xl"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
+                  {item.label}
+                </Link>
               )
             })}
+          </div>
 
-            {/* Divider */}
-            <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2" />
-
-            {/* Theme Toggle */}
-            <motion.button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300"
-              whileHover={{ scale: 1.1, rotate: 180 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {theme === 'light' ? (
-                <Moon className="w-4 h-4" />
-              ) : (
-                <Sun className="w-4 h-4" />
-              )}
-            </motion.button>
-          </nav>
-        </motion.div>
-      </motion.div>
-
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setSidebarOpen(!isSidebarOpen)}
-        className="fixed top-6 left-6 z-50 lg:hidden p-2 rounded-lg glass-effect hover:scale-105 transition-all duration-300"
-      >
-        <AnimatePresence mode="wait">
-          {isSidebarOpen ? (
-            <motion.div
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <X className="w-6 h-6" />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="menu"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Menu className="w-6 h-6" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </button>
-
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Mobile Sidebar */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ x: -300 }}
-            animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed left-0 top-0 h-full w-80 glass-effect z-50 lg:hidden"
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={
+              mounted
+                ? `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`
+                : 'Toggle theme'
+            }
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
           >
-            <div className="p-6 h-full flex flex-col">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold gradient-text">Rahul</h2>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+            {mounted ? <ThemeIcon className="h-4 w-4" /> : <span className="h-4 w-4" />}
+          </button>
+        </nav>
+      </div>
 
-              <nav className="flex-1 space-y-2">
-                {navItems.map((item, index) => {
-                  const Icon = item.icon
-                  const isActive = currentSection === item.id
-                  
-                  return (
-                    <motion.button
-                      key={item.id}
-                      onClick={() => scrollToSection(item.id)}
-                      className={cn(
-                        "w-full flex items-center space-x-3 p-4 rounded-xl transition-all duration-300",
-                        isActive 
-                          ? "bg-primary/20 text-primary" 
-                          : "text-black dark:text-gray-400 hover:text-primary hover:bg-primary/10"
-                      )}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </motion.button>
-                  )
-                })}
-              </nav>
+      {/* Mobile top bar */}
+      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-line bg-background/80 px-5 py-3.5 backdrop-blur-xl lg:hidden">
+        <Link href="/" className="type-metadata text-foreground" aria-label="Home">
+          RAHUL<span className="text-muted-foreground">/</span>
+        </Link>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={
+              mounted
+                ? `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`
+                : 'Toggle theme'
+            }
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground"
+          >
+            {mounted ? <ThemeIcon className="h-4 w-4" /> : <span className="h-4 w-4" />}
+          </button>
+          <button
+            ref={openerRef}
+            type="button"
+            onClick={() => setSidebarOpen(!isSidebarOpen)}
+            aria-label={isSidebarOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isSidebarOpen}
+            aria-controls="mobile-nav"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-foreground"
+          >
+            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </header>
 
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={toggleTheme}
-                  className="w-full flex items-center space-x-3 p-4 rounded-xl text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300"
+      {/* Mobile drawer */}
+      {isSidebarOpen && (
+        <div
+          ref={drawerRef}
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+          className="animate-fade-in fixed inset-0 z-40 flex flex-col bg-background/95 px-5 pb-10 pt-24 backdrop-blur-xl lg:hidden"
+        >
+          <nav aria-label="Primary" className="flex flex-col divide-y divide-border border-y border-line">
+            {navItems.map((item, i) => {
+              const isActive = onHome && currentSection === item.id
+              return (
+                <Link
+                  key={item.id}
+                  href={hrefFor(item.id)}
+                  aria-current={isActive ? 'true' : undefined}
+                  onClick={(e) => onNavClick(e, item.id)}
+                  className="animate-fade-in-up flex items-baseline justify-between py-5 text-left"
+                  style={{ animationDelay: `${40 * i}ms` }}
                 >
-                  {theme === 'light' ? (
-                    <>
-                      <Moon className="w-5 h-5" />
-                      <span>Dark Mode</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sun className="w-5 h-5" />
-                      <span>Light Mode</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <span
+                    className={cn(
+                      'text-2xl font-medium tracking-tight',
+                      isActive ? 'text-foreground' : 'text-muted-foreground',
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                  <span className="type-metadata">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="mt-auto flex gap-2.5 pt-10">
+            {socials.map((social) => {
+              const Icon = social.icon
+              const external = social.href.startsWith('http')
+              return (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                  aria-label={social.label}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-line text-muted-foreground"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </>
   )
-} 
+}

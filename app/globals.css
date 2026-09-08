@@ -1,54 +1,150 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   DESIGN TOKENS — "Graphite & Light"
+
+   A controlled rich-colour system: a deep, sophisticated neutral foundation
+   carrying ~75% of every screen, with a limited set of saturated accents that
+   belong to the *environment* (glows, rules, atmospheres) rather than to every
+   button and card.
+
+   Values are space-separated RGB channels so Tailwind's `/opacity` modifiers
+   keep working everywhere: rgb(var(--token) / <alpha-value>).
+   ========================================================================== */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+  /* ---- DARK (default): deep graphite, never flat black ------------------ */
+  :root,
+  .dark {
+    /* Neutral foundation */
+    --base: 14 15 19; /* page — graphite with a cold undertone */
+    --surface-1: 20 22 28; /* raised panel */
+    --surface-2: 28 31 39; /* nested panel / hover */
+    --surface-3: 38 42 52; /* chips, inputs */
+
+    --fg: 240 241 245; /* near-white, faintly warm */
+    --fg-muted: 154 159 172; /* 7.2:1 on --base */
+    --fg-faint: 108 114 128; /* decorative only */
+
+    --line: 40 44 55; /* hairline */
+    --line-strong: 58 63 78;
+
+    /* Accent family — luminous on graphite */
+    --violet: 149 108 255;
+    --cobalt: 74 137 255;
+    --cyan: 56 199 226;
+    --emerald: 46 200 143;
+    --coral: 255 122 84;
+    --pink: 244 114 182;
+
+    /* Atmosphere strength (dialled down in light mode) */
+    --atmos: 1;
+    --glow: 0.55;
+
+    color-scheme: dark;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+  /* ---- LIGHT: warm ivory, near-black graphite type ---------------------- */
+  .light {
+    --base: 248 247 244;
+    --surface-1: 255 255 254;
+    --surface-2: 243 241 236;
+    --surface-3: 234 232 226;
+
+    --fg: 22 23 27;
+    --fg-muted: 92 96 106; /* 5.9:1 on --base */
+    --fg-faint: 133 137 147;
+
+    --line: 223 221 214;
+    --line-strong: 203 200 191;
+
+    /* Deeper accents so they hold their own against ivory */
+    --violet: 109 58 224;
+    --cobalt: 29 92 216;
+    --cyan: 11 116 140; /* 5.0:1 on --base */
+    --emerald: 6 120 84; /* 5.1:1 on --base */
+    --coral: 188 64 28;
+    --pink: 190 42 118;
+
+    --atmos: 0.55;
+    --glow: 0.22;
+
+    color-scheme: light;
+  }
+
+  /* ---- Semantic aliases -------------------------------------------------
+     Existing components keep speaking Tailwind's semantic names; the names
+     now resolve into the new foundation. */
+  :root,
+  .dark,
+  .light {
+    --background: var(--base);
+    --foreground: var(--fg);
+    --muted-foreground: var(--fg-muted);
+    --card: var(--surface-1);
+    --card-foreground: var(--fg);
+    --popover: var(--surface-1);
+    --popover-foreground: var(--fg);
+    --secondary: var(--surface-2);
+    --secondary-foreground: var(--fg);
+    --muted: var(--surface-2);
+    --border: var(--line);
+    --input: var(--surface-2);
+
+    /* Legacy surface names retained so existing markup keeps working. */
+    --paper: var(--base);
+    --ivory: var(--surface-1);
+    --cream: var(--surface-2);
+    --ink: var(--fg);
+    --graphite: var(--fg);
+
+    /* Primary = inverted neutral (a confident, colourless CTA). */
+    --primary: var(--fg);
+    --primary-foreground: var(--base);
+
+    --destructive: 232 90 76;
+    --destructive-foreground: 255 255 255;
+
+    --radius: 0.875rem;
+  }
+
+  /* ==========================================================================
+     SECTION ACCENT WORLDS
+     Every section declares one hue via `data-accent`. Everything inside —
+     rules, bullets, focus rings, glows, the atmospheric wash — reads
+     `--accent`, so one attribute re-tints an entire world.
+     ========================================================================== */
+  :root {
+    --accent: var(--violet);
+  }
+  [data-accent='violet'] {
+    --accent: var(--violet);
+  }
+  [data-accent='cobalt'] {
+    --accent: var(--cobalt);
+  }
+  [data-accent='cyan'] {
+    --accent: var(--cyan);
+  }
+  [data-accent='emerald'] {
+    --accent: var(--emerald);
+  }
+  [data-accent='coral'] {
+    --accent: var(--coral);
+  }
+  [data-accent='pink'] {
+    --accent: var(--pink);
+  }
+
+  /* NOTE: `accent-strong` and `ring` are mapped straight to `--accent` in the
+     Tailwind config rather than aliased here. A `--x: var(--accent)` alias
+     declared at :root is computed at :root, so it would freeze to the root hue
+     and ignore every `data-accent` further down the tree. */
+  :root,
+  .dark,
+  .light {
+    --accent-foreground: var(--fg);
   }
 }
 
@@ -56,103 +152,470 @@
   * {
     @apply border-border;
   }
-  
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
 
   html {
-    scroll-behavior: smooth;
+    /* Deliberately no `scroll-behavior: smooth` — it fights Lenis' programmatic
+       scrollTo and makes anchor jumps stutter. Smoothness comes from Lenis;
+       the reduced-motion block below pins native behaviour back on. */
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* Custom scrollbar */
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'ss01' 1, 'cv05' 1, 'kern' 1, 'liga' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    /* Guard against decorative bleed causing horizontal scroll.
+       `clip` (not `hidden`) so `position: sticky` still works. */
+    overflow-x: clip;
+  }
+
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
+    height: 10px;
   }
-
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: transparent;
   }
-
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+    background: rgb(var(--fg) / 0.16);
+    border-radius: 999px;
+    border: 3px solid rgb(var(--base));
   }
-
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
+    background: rgb(var(--fg) / 0.3);
   }
 
-  /* Selection styles */
   ::selection {
-    @apply bg-primary/20 text-primary;
+    background: rgb(var(--accent) / 0.3);
+    color: rgb(var(--fg));
   }
 
-  /* Focus styles for accessibility */
+  /* A real outline (not only a box-shadow) so the ring survives Windows High
+     Contrast / forced-colors, where box-shadows are not painted. */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  @media (forced-colors: active) {
+    *:focus-visible {
+      outline: 3px solid CanvasText;
+    }
   }
 
-  /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
 
+/* ============================================================================
+   TYPOGRAPHY — oversized editorial display, tight tracking, mono metadata.
+   The jump between tiers is deliberately large: that contrast is what stops
+   the page reading like a résumé.
+   ========================================================================== */
 @layer components {
-  .glass-effect {
-    @apply backdrop-blur-md bg-glass-light dark:bg-glass-dark border border-white/20 dark:border-white/10;
+  .type-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.75rem, 1.1rem + 7vw, 8.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    font-optical-sizing: auto;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
 
-  .neon-glow {
-    @apply shadow-neon-blue dark:shadow-neon-purple;
+  .type-display-sm {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 1.15rem + 3.7vw, 4.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.036em;
+    font-optical-sizing: auto;
+    overflow-wrap: break-word;
   }
 
-  .gradient-text {
-    @apply bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent;
+  .type-engineering {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.4rem, 1rem + 1.9vw, 2.3rem);
+    line-height: 1.14;
+    letter-spacing: -0.028em;
   }
 
-  .section-padding {
-    @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24;
+  .type-project {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.7rem, 1.2rem + 1.9vw, 2.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.032em;
+    font-optical-sizing: auto;
   }
 
-  .container-custom {
-    @apply max-w-7xl mx-auto;
+  .type-technology {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
-  .btn-primary {
-    @apply px-6 py-3 bg-primary text-white rounded-lg font-medium transition-all duration-300 hover:bg-primary/90 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  .type-metadata {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 400;
+    font-size: 0.6875rem;
+    line-height: 1.1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--fg-muted));
   }
 
-  .btn-secondary {
-    @apply px-6 py-3 border border-primary text-primary rounded-lg font-medium transition-all duration-300 hover:bg-primary hover:text-white hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  /* An accent-tinted metadata label — the smallest dose of colour there is. */
+  .type-metadata-accent {
+    color: rgb(var(--accent));
   }
 
-  .card-hover {
-    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg dark:hover:shadow-neon-blue/20;
+  /* CHAPTER tier — the loudest type on the site. Used only at the two
+     full-bleed transitions, where a question is asked at architectural scale.
+     Deliberately larger than `.type-display` so those beats read as a different
+     register rather than another heading. */
+  .type-edge {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.9rem, 1rem + 8.6vw, 9.5rem);
+    line-height: 0.88;
+    letter-spacing: -0.05em;
+    font-optical-sizing: auto;
+    overflow-wrap: break-word;
   }
 
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent;
+  /* The same word, hollow — a mis-registered second impression sitting behind
+     the solid one. Two copies drifting at different rates is what gives the
+     chapter cards depth without a single image. */
+  .type-ghost {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(var(--accent) / 0.42);
+  }
+  @supports not (-webkit-text-stroke: 1px red) {
+    .type-ghost {
+      color: rgb(var(--accent) / 0.14);
+    }
+  }
+}
+
+/* ============================================================================
+   SURFACES, ATMOSPHERE & LIGHT
+   ========================================================================== */
+@layer components {
+  /* Translucent panel with an elegant, light-catching top edge. */
+  .surface {
+    background:
+      linear-gradient(
+        180deg,
+        rgb(var(--surface-1) / 0.9) 0%,
+        rgb(var(--surface-1) / 0.62) 100%
+      );
+    border: 1px solid rgb(var(--line));
+    backdrop-filter: blur(20px) saturate(1.15);
+    -webkit-backdrop-filter: blur(20px) saturate(1.15);
+    box-shadow:
+      0 1px 0 0 rgb(var(--fg) / 0.05) inset,
+      0 20px 50px -30px rgb(0 0 0 / 0.7);
+  }
+
+  /* The same panel, tinted by the active world. */
+  .surface-accent {
+    background:
+      radial-gradient(
+        120% 100% at 0% 0%,
+        rgb(var(--accent) / calc(0.1 * var(--atmos))) 0%,
+        transparent 62%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--surface-1) / 0.9) 0%,
+        rgb(var(--surface-1) / 0.6) 100%
+      );
+    border: 1px solid rgb(var(--line));
+    backdrop-filter: blur(20px) saturate(1.15);
+    -webkit-backdrop-filter: blur(20px) saturate(1.15);
+    box-shadow:
+      0 1px 0 0 rgb(var(--fg) / 0.05) inset,
+      0 20px 50px -30px rgb(0 0 0 / 0.7);
+  }
+
+  /* Section atmosphere: a broad, soft field of the world's hue. Sits behind
+     content, never above it.
+
+     Suppressed while the 3D world is running — the world already supplies the
+     atmosphere, and a per-section field layered on top of it turns every
+     section boundary into a visible seam. */
+  .atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.6s ease;
+  }
+  [data-world='on'] .atmosphere {
+    opacity: 0;
+  }
+  .atmosphere::before,
+  .atmosphere::after {
+    content: '';
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(90px);
+  }
+  .atmosphere::before {
+    top: -18%;
+    left: -8%;
+    width: min(62vw, 780px);
+    height: min(52vh, 560px);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--accent) / calc(0.2 * var(--atmos))),
+      transparent
+    );
+  }
+  .atmosphere::after {
+    right: -12%;
+    bottom: -22%;
+    width: min(50vw, 620px);
+    height: min(44vh, 480px);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--accent) / calc(0.13 * var(--atmos))),
+      transparent
+    );
+  }
+
+  /* Directional scrim: opaque under the type, clearing toward the object.
+     Heavier on small screens, where the text column spans the full width. */
+  /* Phones: the text column spans the full width, so a directional scrim has
+     nowhere to clear to. The veil is heaviest exactly where the headline sits
+     and lifts above and below it, so the scene stays legible as a world instead
+     of being flattened into a grey field for the whole 4-screen descent. */
+  .hero-scrim {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--base) / 0.62) 0%,
+      rgb(var(--base) / 0.88) 26%,
+      rgb(var(--base) / 0.88) 62%,
+      rgb(var(--base) / 0.45) 100%
+    );
+  }
+  @media (min-width: 768px) {
+    .hero-scrim {
+      background: linear-gradient(
+        100deg,
+        rgb(var(--base) / 0.94) 0%,
+        rgb(var(--base) / 0.66) 34%,
+        rgb(var(--base) / 0.1) 62%,
+        transparent 80%
+      );
+    }
+  }
+
+  /* A hairline that catches the world's colour at its centre. */
+  .rule-accent {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--accent) / 0.65) 22%,
+      rgb(var(--accent) / 0.65) 78%,
+      transparent
+    );
+  }
+
+  /* Confident, colourless primary action. Colour stays in the environment. */
+  .btn-solid {
+    background: rgb(var(--fg));
+    color: rgb(var(--base));
+  }
+  .btn-solid:hover {
+    box-shadow: 0 12px 34px -14px rgb(var(--accent) / calc(0.9 * var(--glow)));
   }
 }
 
 @layer utilities {
+  .text-pretty {
+    text-wrap: pretty;
+  }
   .text-balance {
     text-wrap: balance;
   }
 
-  .perspective-1000 {
-    perspective: 1000px;
+  /* Soft light bloom in the active world's hue. */
+  .glow-accent {
+    box-shadow:
+      0 0 0 1px rgb(var(--accent) / 0.22),
+      0 18px 60px -26px rgb(var(--accent) / calc(1.1 * var(--glow)));
+  }
+  .glow-accent-sm {
+    box-shadow: 0 10px 30px -16px rgb(var(--accent) / calc(0.9 * var(--glow)));
+  }
+  .text-glow {
+    text-shadow: 0 0 26px rgb(var(--accent) / calc(0.55 * var(--glow)));
   }
 
-  .backface-hidden {
-    backface-visibility: hidden;
+  /* Fine engineering grid */
+  .bg-grid {
+    background-image: linear-gradient(
+        to right,
+        rgb(var(--fg) / 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgb(var(--fg) / 0.05) 1px, transparent 1px);
+    background-size: 76px 76px;
   }
-} 
+  .bg-grid-sm {
+    background-image: linear-gradient(
+        to right,
+        rgb(var(--fg) / 0.055) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgb(var(--fg) / 0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  .bg-grid-fade {
+    -webkit-mask-image: radial-gradient(ellipse 78% 58% at 50% 0%, #000 0%, transparent 76%);
+    mask-image: radial-gradient(ellipse 78% 58% at 50% 0%, #000 0%, transparent 76%);
+  }
+
+  /* Film grain — the thing that stops large flat fields looking digital. */
+  .grain-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.055;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .light .grain-layer {
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--fg) / 0.22) transparent;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* No-JS safety net: never leave revealed content hidden */
+  @media (scripting: none) {
+    [data-shown='false'] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /* ==========================================================================
+     GSAP scroll system — pre-paint initial states
+     Set only when motion is allowed AND scripting is on, so a reduced-motion
+     user, a no-JS client, or a browser that can't evaluate `scripting` all see
+     fully-rendered content. GSAP clears these inline as each element animates,
+     and `useGsapScope` strips the attribute if the chunk never loads.
+     ========================================================================== */
+  @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    [data-anim-init='fade'] {
+      opacity: 0;
+    }
+    [data-anim-init='fade-up'] {
+      opacity: 0;
+      transform: translate3d(0, var(--anim-y, 28px), 0);
+    }
+    [data-anim-init='fade-down'] {
+      opacity: 0;
+      transform: translate3d(0, calc(var(--anim-y, 24px) * -1), 0);
+    }
+    [data-anim-init='fade-right'] {
+      opacity: 0;
+      transform: translate3d(var(--anim-x, -32px), 0, 0);
+    }
+    [data-anim-init='fade-left'] {
+      opacity: 0;
+      transform: translate3d(var(--anim-x, 32px), 0, 0);
+    }
+    [data-anim-init='scale'] {
+      opacity: 0;
+      transform: scale(0.955);
+    }
+    [data-anim-init='clip-up'] {
+      opacity: 1;
+      clip-path: inset(100% 0 0 0);
+      transform: translate3d(0, var(--anim-y, 24px), 0);
+    }
+    [data-anim-init='blur'] {
+      opacity: 0;
+      filter: blur(12px);
+    }
+    [data-anim-init='stagger'] > * {
+      opacity: 0;
+      transform: translate3d(0, var(--anim-y, 24px), 0);
+    }
+    /* masked text-reveal lines wait for SplitText + the tween */
+    [data-anim-init='text'] {
+      opacity: 0;
+    }
+  }
+
+  .will-change-transform {
+    will-change: transform;
+  }
+}
+
+/* ============================================================================
+   VIEW TRANSITIONS — project index ⇄ case study
+   Progressive enhancement: only Chromium fires these today; TransitionLink
+   feature-detects and reduced-motion users get a plain navigation.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.42s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  ::view-transition-old(root) {
+    animation-name: vt-out;
+  }
+  ::view-transition-new(root) {
+    animation-name: vt-in;
+  }
+  @keyframes vt-out {
+    to {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.994);
+    }
+  }
+  @keyframes vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+}

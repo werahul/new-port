@@ -1,336 +1,241 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ChevronDown, Download, Mail, ArrowRight, Sparkles, Code, Zap, Rocket } from 'lucide-react'
+import { Fragment } from 'react'
+import { Container, MagneticButton, SkillTag } from '@/components/primitives'
+import { HeroCaptions } from './hero-captions'
+import { scrollToId } from '@/components/ui/smooth-scroll'
+import { useGsapScope } from '@/lib/animation/use-gsap-scope'
+import { EASE, MQ } from '@/lib/animation/config'
+import { useWorldStore } from '@/lib/world/store'
+import { stations } from '@/content/world'
+import { heroCopy } from '@/content/journey'
+import { profile } from '@/content/profile'
 import { cn } from '@/lib/utils'
 
-gsap.registerPlugin(ScrollTrigger)
-
+/**
+ * The hero is not a section with a 3D object in it — the world is mounted behind
+ * the whole page. What lives here is the *entry*: a tall scroll range that gives
+ * the camera room to travel the first six stations, and a GSAP-orchestrated
+ * opening sequence that reveals the identity while the establishing shot settles,
+ * then hands control to the scroll.
+ */
 export function HeroSection() {
-  const heroRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isHovered, setIsHovered] = useState(false)
+  const enabled = useWorldStore((s) => s.enabled)
+  const station = useWorldStore((s) => s.station)
 
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  })
-
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        setMousePosition({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top
-        })
+  // ---- opening sequence -------------------------------------------------
+  const heroRef = useGsapScope<HTMLDivElement>(
+    ({ gsap, scope, mm }) => {
+      // Drop the pre-paint attribute rather than pinning opacity inline — the
+      // wrapper still needs its `data-[receded]` class to fade it on scroll.
+      const reveal = () => {
+        scope.removeAttribute('data-anim-init')
+        gsap.set(scope, { clearProps: 'opacity' })
       }
-    }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
+      mm.add({ reduce: MQ.reduce, ok: MQ.motionOk }, (c) => {
+        if (c.conditions?.reduce) {
+          reveal()
+          gsap.set(scope.querySelectorAll('.jr-word, .jr-item'), {
+            clearProps: 'all',
+          })
+          return
+        }
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Staggered text reveal with more dramatic timing
-      const tl = gsap.timeline({ delay: 0.5 })
+        reveal()
+        const tl = gsap.timeline({
+          defaults: { ease: EASE.out },
+          delay: 0.15,
+        })
 
-      tl.fromTo('.hero-badge',
-        { y: 50, opacity: 0, scale: 0.8 },
-        { y: 0, opacity: 1, scale: 1, duration: 1, ease: "back.out(1.7)" }
-      )
+        tl.from('.jr-kicker', { autoAlpha: 0, y: 14, duration: 0.5 }, 0)
+          .from(
+            '.jr-word',
+            {
+              yPercent: 118,
+              duration: 0.9,
+              ease: EASE.expo,
+              stagger: 0.08,
+            },
+            0.1,
+          )
+          .from(
+            '.jr-sub',
+            { autoAlpha: 0, y: 18, duration: 0.6 },
+            0.5,
+          )
+          .from(
+            '.jr-pos > *',
+            { autoAlpha: 0, y: 12, duration: 0.45, stagger: 0.05 },
+            0.62,
+          )
+          .from(
+            '.jr-cta',
+            { autoAlpha: 0, y: 14, duration: 0.5 },
+            0.74,
+          )
 
-      tl.fromTo('.hero-name',
-        { y: 120, opacity: 0, rotationX: 90 },
-        { y: 0, opacity: 1, rotationX: 0, duration: 1.2, stagger: 0.1, ease: "power3.out" },
-        '-=0.3'
-      )
+        // Let a visitor who is already scrolling skip straight to the end.
+        const skip = () => {
+          tl.progress(1)
+          teardown()
+        }
+        const teardown = () => {
+          window.removeEventListener('wheel', skip)
+          window.removeEventListener('keydown', skip)
+          window.removeEventListener('pointerdown', skip)
+          window.removeEventListener('touchstart', skip)
+        }
+        window.addEventListener('wheel', skip, { passive: true, once: true })
+        window.addEventListener('keydown', skip, { once: true })
+        window.addEventListener('pointerdown', skip, { once: true })
+        window.addEventListener('touchstart', skip, { passive: true, once: true })
 
-      tl.fromTo('.hero-title',
-        { y: 80, opacity: 0, scale: 0.9 },
-        { y: 0, opacity: 1, scale: 1, duration: 1, ease: "power2.out" },
-        '-=0.5'
-      )
-
-      tl.fromTo('.hero-description',
-        { y: 60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" },
-        '-=0.3'
-      )
-
-      tl.fromTo('.hero-buttons',
-        { y: 40, opacity: 0, scale: 0.9 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.1, ease: "back.out(1.7)" },
-        '-=0.2'
-      )
-
-      // Floating elements animation
-      gsap.to('.floating-orb', {
-        y: -30,
-        x: 20,
-        duration: 6,
-        repeat: -1,
-        yoyo: true,
-        ease: "power1.inOut",
-        stagger: 0.5
+        return () => {
+          teardown()
+          tl.kill()
+        }
       })
-
-      // Rotating elements
-      gsap.to('.rotating-element', {
-        rotation: 360,
-        duration: 20,
-        repeat: -1,
-        ease: "none"
-      })
-
-      // Particle animation
-      gsap.to('.particle', {
-        y: -100,
-        opacity: 0,
-        duration: 3,
-        repeat: -1,
-        stagger: 0.1,
-        ease: "power1.out"
-      })
-
-    }, heroRef)
-
-    return () => ctx.revert()
-  }, [])
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      setMousePosition({ x, y })
-    }
-  }
+    },
+    [],
+  )
 
   return (
     <section
       id="home"
-      ref={heroRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
-      onMouseMove={handleMouseMove}
+      data-accent={
+        enabled && station > 0 ? stations[Math.min(station, 8)].accent : 'violet'
+      }
+      className={cn(
+        'relative transition-[--accent] duration-700',
+        // Phones get a shorter descent: the same six stations, but ~50vh of
+        // travel each instead of ~85vh. On a small screen the longer version is
+        // four screens of scrolling through a scrim, not a journey.
+        enabled ? 'h-[380vh] sm:h-[470vh] lg:h-[620vh]' : 'relative',
+      )}
     >
-      {/* Dynamic Background with Mouse Follow */}
       <div
-        ref={containerRef}
-        className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
+        className={cn(
+          'flex h-[100svh] flex-col overflow-hidden',
+          enabled ? 'sticky top-0' : 'relative',
+        )}
       >
-        {/* Animated gradient overlay */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 40%)`
-          }}
-        />
+        {enabled && (
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-[1]">
+            <div className="hero-scrim absolute inset-0" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-background via-background/80 to-transparent" />
+          </div>
+        )}
 
-        {/* Geometric Patterns */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-500/20 rounded-full blur-3xl floating-orb" />
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-pink-400/20 to-orange-500/20 rounded-full blur-3xl floating-orb" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-r from-emerald-400/20 to-cyan-500/20 rounded-full blur-3xl floating-orb" />
-        </div>
-
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:50px_50px] dark:bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)]" />
-
-        {/* Floating Particles */}
-        {[...Array(20)].map((_, i) => (
+        <Container className="relative flex flex-1 flex-col">
           <div
-            key={i}
-            className="particle absolute w-1 h-1 bg-blue-400 rounded-full opacity-60"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`
-            }}
-          />
-        ))}
-
-        {/* Rotating Code Elements */}
-        <div className="absolute top-1/4 right-1/4 w-32 h-32 rotating-element opacity-20">
-          <Code className="w-full h-full text-blue-400" />
-        </div>
-        <div className="absolute bottom-1/4 left-1/4 w-24 h-24 rotating-element opacity-20" style={{ animationDirection: 'reverse' }}>
-          <Zap className="w-full h-full text-purple-400" />
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 container-custom section-padding text-center">
-        {/* Badge */}
-        <motion.div
-          className="hero-badge mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400 text-sm font-semibold border border-blue-500/20 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4" />
-            Frontend Engineer
-            <Sparkles className="w-4 h-4" />
-          </span>
-        </motion.div>
-
-        {/* Name */}
-        <div className="mb-6">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight">
-            <span className="hero-name block text-slate-800 dark:text-slate-200">Hi, I'm</span>
-            <span className="hero-name block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Rahul
-            </span>
-          </h1>
-        </div>
-
-        {/* Title */}
-        <motion.h2
-          className="hero-title text-xl md:text-3xl lg:text-4xl font-semibold text-slate-600 dark:text-slate-300 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          Crafting Digital Experiences with
-          <span className="block text-blue-600 dark:text-blue-400 font-bold">
-            Modern Web Technologies
-          </span>
-        </motion.h2>
-
-        {/* Description */}
-        <motion.p
-          className="hero-description text-[14px] md:text-xl text-slate-500 dark:text-slate-400 max-w-4xl mx-auto mb-12 leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-        >
-          Frontend Engineer passionate about creating exceptional web applications.
-          Specializing in React, Node.js, and cutting-edge technologies to build
-          scalable, performant, and user-centric solutions.
-        </motion.p>
-
-        {/* Action Buttons */}
-        <div className="hero-buttons flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <a href="https://drive.google.com/file/d/1mN0sqLF4eYY3gXfaaZpF_dUspVTstk9p/view?usp=sharing" target="_blank" rel="noopener noreferrer">
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative md:px-8 md:py-4 px-5
-py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <Download className="w-5 h-5 group-hover:animate-bounce" />
-                Download Resume
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </motion.button>
-          </a>
-          <a href="mailto:rahuldev.kb@gmail.com">
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="group md:px-8 md:py-4 px-5
-py-3 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-200 dark:border-slate-700 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300"
-            >
-              <span className="flex items-center gap-2">
-                <Mail className="w-5 h-5 group-hover:animate-pulse" />
-                Let's Connect
-              </span>
-            </motion.button>
-          </a>
-        </div>
-
-        {/* Stats */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-        >
-          {[
-            { number: "3+", label: "Years Experience", icon: Rocket },
-            { number: "20+", label: "Projects Completed", icon: Code },
-            { number: "7+ ", label: "Industries Served", icon: Zap }
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="text-center p-6 rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50"
-              whileHover={{ scale: 1.05, y: -5 }}
-              transition={{ duration: 0.3 }}
-            >
-              <stat.icon className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-1">
-                {stat.number}
-              </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:block"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex flex-col items-center space-y-2 text-slate-500 dark:text-slate-400"
+            ref={heroRef}
+            data-anim-init="fade"
+            data-receded={enabled && station > 0}
+            className={cn(
+              'jr-hero flex flex-1 flex-col justify-center',
+              'transition-[opacity,transform] duration-700 ease-editorial motion-reduce:transition-none',
+              'data-[receded=true]:pointer-events-none data-[receded=true]:-translate-y-6 data-[receded=true]:opacity-0',
+            )}
           >
-            <span className="text-sm font-medium">Scroll to explore</span>
-            <ChevronDown className="w-5 h-5" />
-          </motion.div>
-        </motion.div>
+            <div className="jr-item jr-kicker flex items-center gap-2 type-metadata">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+              </span>
+              {heroCopy.kicker}
+            </div>
+
+            <h1 className="jr-title mt-6 type-display text-foreground">
+              {heroCopy.titleWords.map((word, i) => (
+                <Fragment key={word}>
+                  <span className="jr-mask inline-block overflow-hidden align-bottom">
+                    <span className="jr-word inline-block pb-[0.08em]">{word}</span>
+                  </span>
+                  {i < heroCopy.titleWords.length - 1 ? ' ' : null}
+                </Fragment>
+              ))}
+            </h1>
+
+            <p className="jr-item jr-sub mt-7 max-w-measure text-pretty text-[1.0625rem] leading-relaxed text-muted-foreground">
+              {heroCopy.statement}
+            </p>
+
+            <div className="jr-item jr-pos mt-7 flex flex-wrap gap-1.5">
+              {heroCopy.positioning.map((p) => (
+                <SkillTag key={p} emphasis>
+                  {p}
+                </SkillTag>
+              ))}
+            </div>
+
+            <div className="jr-item jr-cta mt-9 flex flex-wrap items-center gap-4">
+              <MagneticButton
+                href="#works"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToId('works')
+                }}
+                variant="primary"
+                withArrow
+              >
+                View selected work
+              </MagneticButton>
+              <MagneticButton
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToId('contact')
+                }}
+                variant="line"
+              >
+                Start a conversation
+              </MagneticButton>
+              <MagneticButton
+                href={profile.resumeUrl}
+                target="_blank"
+                variant="ghost"
+                withArrow
+              >
+                Résumé
+              </MagneticButton>
+            </div>
+          </div>
+        </Container>
+
+        <HeroCaptions />
       </div>
 
-      {/* Floating Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          animate={{
-            y: [0, -20, 0],
-            rotate: [0, 5, 0]
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute top-1/4 left-10 w-16 h-16 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl"
-        />
-        <motion.div
-          animate={{
-            y: [0, 20, 0],
-            rotate: [0, -5, 0]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-          className="absolute bottom-1/4 right-10 w-12 h-12 bg-gradient-to-r from-pink-400/20 to-orange-400/20 rounded-full blur-xl"
-        />
-      </div>
+      {/* No world (reduced motion, no WebGL, or a device we chose to spare):
+          the same journey, readable as an index. */}
+      {!enabled && (
+        <Container className="relative z-10 pb-24">
+          <ol className="border-t border-line">
+            {stations.map((s) => (
+              <li
+                key={s.id}
+                data-accent={s.accent}
+                className="grid gap-3 border-b border-line py-6 sm:grid-cols-[7rem_1fr] sm:gap-8"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="type-metadata text-muted-foreground">{s.index}</span>
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                </div>
+                <div>
+                  <div className="type-engineering text-foreground">{s.label}</div>
+                  <div className="type-technology mt-1.5 text-muted-foreground">
+                    {s.stack}
+                  </div>
+                  <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+                    {s.note}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Container>
+      )}
     </section>
   )
-} 
+}
