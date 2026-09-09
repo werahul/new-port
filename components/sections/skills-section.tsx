@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react'
 import { Section } from '@/components/primitives'
-import { ScrollReveal, TextReveal } from '@/components/motion'
+import { usePinnedSequence } from '@/components/motion'
 import { loadGsap, type GsapBundle } from '@/lib/animation/gsap'
 import { prefersReducedMotion } from '@/lib/animation/reduced-motion'
 import { EASE } from '@/lib/animation/config'
@@ -24,6 +24,14 @@ import {
 
 const useIsoLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+/**
+ * How much scroll each domain owns while the map is pinned, as a share of the
+ * viewport. Eight domains at 0.55 is a little over four screens of travel —
+ * long enough that a layer is read rather than flicked past, short enough that
+ * the hold does not outstay its welcome.
+ */
+const SCROLL_PER_DOMAIN = 0.55
 
 const dotClass: Record<Proficiency, string> = {
   core: 'bg-accent-strong',
@@ -58,6 +66,9 @@ export function SkillsSection() {
   const listRef = useRef<HTMLDivElement>(null)
   const taglineRef = useRef<HTMLParagraphElement>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
+
+  /** the pin's onUpdate is built once and must not close over a stale one */
+  const selectRef = useRef<(id: string) => void>(() => {})
 
   const totalTech = useMemo(
     () => skillDomains.reduce((n, d) => n + d.skills.length, 0),
@@ -184,6 +195,44 @@ export function SkillsSection() {
     [displayId],
   )
 
+  selectRef.current = selectDomain
+
+  /**
+   * THE MAP IS PINNED AND THE SCROLL DRIVES IT.
+   *
+   * The stage holds still in the middle of the viewport while the page keeps
+   * scrolling underneath it, and each slice of that travel selects one domain
+   * — Frontend Engineering through to AI-Assisted Development — before the
+   * section releases and the page carries on.
+   */
+  const {
+    ref: stageRef,
+    goTo,
+    pinned: scrollDriven,
+  } = usePinnedSequence<HTMLDivElement>({
+    count: skillDomains.length,
+    scrollPerStep: SCROLL_PER_DOMAIN,
+    onIndex: useCallback((i: number) => {
+      selectRef.current(skillDomains[i].id)
+    }, []),
+  })
+
+  /**
+   * Choosing a domain by click or key. Selection first so the rail answers
+   * immediately, then the page moves to that domain's slice — `goTo` mutes the
+   * scroll updates it is about to cause, so the two can never disagree, and
+   * does nothing at all when the map is not pinned.
+   */
+  const goToDomain = useCallback(
+    (i: number) => {
+      const domain = skillDomains[i]
+      if (!domain) return
+      selectDomain(domain.id)
+      goTo(i)
+    },
+    [selectDomain, goTo],
+  )
+
   const onRailKeyDown = (e: React.KeyboardEvent) => {
     const nav = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End']
     if (!nav.includes(e.key)) return
@@ -196,9 +245,16 @@ export function SkillsSection() {
       next = (i - 1 + skillDomains.length) % skillDomains.length
     if (e.key === 'Home') next = 0
     if (e.key === 'End') next = skillDomains.length - 1
-    selectDomain(skillDomains[next].id)
-    tabRefs.current[next]?.focus()
+    goToDomain(next)
+    // preventScroll: the tab lives inside the pinned stage, so the browser's
+    // own scroll-into-view would fight the scroll we just started.
+    tabRefs.current[next]?.focus({ preventScroll: true })
   }
+
+  const displayIndex = Math.max(
+    0,
+    skillDomains.findIndex((d) => d.id === displayId),
+  )
 
   return (
     <Section id="skills" accent="cyan" atmosphere>
@@ -216,9 +272,8 @@ export function SkillsSection() {
           className="pointer-events-none absolute -left-16 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(closest-side,rgb(var(--accent)/calc(0.16*var(--atmos))),transparent)] blur-2xl"
         />
 
-        <ScrollReveal
-          as="div"
-          variant="fade-right"
+        <div
+          data-seq
           className="relative flex flex-wrap items-center gap-x-3 gap-y-2"
         >
           <span className="type-metadata text-foreground">Capability</span>
@@ -226,30 +281,25 @@ export function SkillsSection() {
           <span className="type-metadata type-metadata-accent">
             What can I build?
           </span>
-        </ScrollReveal>
+        </div>
 
-        <TextReveal
-          as="h2"
-          split="lines"
+        <h2
+          data-seq
           className="relative type-display-sm mt-6 max-w-[20ch] text-foreground"
         >
           Full-stack engineer, end to end
-        </TextReveal>
+        </h2>
 
-        <ScrollReveal
-          as="p"
-          variant="fade-up"
-          delay={0.05}
+        <p
+          data-seq
           className="relative mt-5 max-w-prose text-pretty text-[0.975rem] leading-relaxed text-muted-foreground"
         >
           Not a badge wall — a map of where I actually operate across the stack,
           with honest depth markers. Pick a domain to move the system into it.
-        </ScrollReveal>
+        </p>
 
-        <ScrollReveal
-          as="ul"
-          variant="fade-up"
-          delay={0.1}
+        <ul
+          data-seq
           className="relative mt-7 flex flex-wrap gap-x-4 gap-y-1.5"
         >
           {skillPillars.map((pillar) => (
@@ -257,25 +307,53 @@ export function SkillsSection() {
               {pillar}
             </li>
           ))}
-        </ScrollReveal>
+        </ul>
 
-        <ScrollReveal
-          as="p"
-          variant="fade"
-          delay={0.15}
+        <p
+          data-seq
           className="type-metadata relative mt-6 text-muted-foreground"
         >
           {skillDomains.length} domains · {totalTech} technologies · 3 proficiency
           tiers
-        </ScrollReveal>
+        </p>
       </div>
 
-      {/* ---- interactive ecosystem ----------------------------------- */}
-      <div className="rhythm-lead grid gap-8 lg:grid-cols-12 lg:gap-10">
+      {/* ---- interactive ecosystem -----------------------------------
+          This whole stage is what gets pinned: it holds still in the viewport
+          while the page scrolls through it, one domain at a time. */}
+      <div
+        ref={stageRef}
+        className="rhythm-lead grid gap-8 lg:grid-cols-12 lg:gap-10"
+      >
         {/* rail */}
-        <div className="min-w-0 lg:col-span-4">
+        <div data-seq className="min-w-0 lg:col-span-4">
           <div className="lg:sticky lg:top-28">
-            <div className="type-metadata mb-3 hidden lg:block">Domains</div>
+            {/* While the stage is pinned the rail is the only thing telling
+                the visitor that scrolling is still going somewhere — so it
+                says how far through it they are. */}
+            <div className="mb-4 hidden lg:block">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="type-metadata text-foreground">Domains</span>
+                <span className="type-metadata">
+                  {String(displayIndex + 1).padStart(2, '0')} /{' '}
+                  {String(skillDomains.length).padStart(2, '0')}
+                </span>
+              </div>
+              <div className="mt-2.5 h-px w-full bg-line">
+                <div
+                  aria-hidden
+                  className="h-px origin-left bg-accent-strong transition-transform duration-500 ease-editorial"
+                  style={{
+                    transform: `scaleX(${(displayIndex + 1) / skillDomains.length})`,
+                  }}
+                />
+              </div>
+              {scrollDriven && (
+                <p className="type-metadata mt-2.5 text-muted-foreground">
+                  Scroll to advance
+                </p>
+              )}
+            </div>
             <div
               role="tablist"
               aria-label="Skill domains"
@@ -295,7 +373,7 @@ export function SkillsSection() {
                     aria-selected={selected}
                     aria-controls="skills-panel"
                     tabIndex={selected ? 0 : -1}
-                    onClick={() => selectDomain(d.id)}
+                    onClick={() => goToDomain(i)}
                     className={cn(
                       'group flex shrink-0 items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2.5 text-left transition-colors duration-300 ease-editorial',
                       'lg:shrink lg:whitespace-normal lg:rounded-none lg:border-0 lg:border-l-2 lg:px-4 lg:py-3',
@@ -324,7 +402,7 @@ export function SkillsSection() {
         </div>
 
         {/* panel */}
-        <div className="min-w-0 lg:col-span-8">
+        <div data-seq className="min-w-0 lg:col-span-8">
           <p className="sr-only" role="status" aria-live="polite">
             {active.name}: {active.skills.length} technologies
           </p>
@@ -333,7 +411,7 @@ export function SkillsSection() {
             id="skills-panel"
             aria-labelledby={`skills-tab-${active.id}`}
             tabIndex={0}
-            className="surface-accent relative overflow-hidden rounded-2xl p-6 focus-visible:outline-none sm:p-8 lg:min-h-[440px]"
+            className="surface-accent relative overflow-hidden rounded-2xl p-6 focus-visible:outline-none sm:p-8 lg:min-h-[520px]"
           >
             {/* engineering-system chrome */}
             <div

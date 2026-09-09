@@ -105,6 +105,13 @@ export function ChapterEdge({
         //  1. a scrubbed depth pass — the solid word and its hollow twin drift
         //     at different rates, so the card has parallax of its own;
         //  2. a one-shot entrance — the question wipes up out of a clip.
+        //
+        // The drift is deliberately small. The ghost is a *second impression of
+        // the same word*, sitting directly behind it: past a few percent of
+        // travel it stops reading as depth and starts reading as a doubled,
+        // sliding word, which is the hardest thing on the page to actually
+        // read. Half the amplitude keeps the parallax and gives the question
+        // back its edges.
         const depth = gsap.timeline({
           scrollTrigger: {
             trigger: scope,
@@ -114,12 +121,12 @@ export function ChapterEdge({
           },
         })
         if (field) depth.fromTo(field, { opacity: 0.25 }, { opacity: 1, ease: EASE.none }, 0)
-        if (word) depth.fromTo(word, { yPercent: 7 }, { yPercent: -7, ease: EASE.none }, 0)
+        if (word) depth.fromTo(word, { yPercent: 4 }, { yPercent: -4, ease: EASE.none }, 0)
         if (ghost)
           depth.fromTo(
             ghost,
-            { yPercent: -14, xPercent: -1.6 },
-            { yPercent: 18, xPercent: 1.6, ease: EASE.none },
+            { yPercent: -7, xPercent: -0.7 },
+            { yPercent: 9, xPercent: 0.7, ease: EASE.none },
             0,
           )
 

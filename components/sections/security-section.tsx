@@ -20,7 +20,16 @@ import {
   CheckCircle,
   ChevronDown,
 } from 'lucide-react'
-import { Container, SectionHeading } from '@/components/primitives'
+import { Section, SectionHeading } from '@/components/primitives'
+import { usePinnedSequence } from '@/components/motion'
+
+/**
+ * How much scroll each practice owns while the rail is pinned, as a share of
+ * the viewport. Seventeen is a lot of steps, so this is well under the Skills
+ * map's 0.55 — at 0.3 the whole set runs to a little over five screens, which
+ * is about as long as a held section can hold attention.
+ */
+const SCROLL_PER_PRACTICE = 0.3
 
 interface Topic {
   id: string
@@ -291,6 +300,52 @@ export function SecuritySection() {
     [revealTab],
   )
 
+  /**
+   * THE RAIL IS PINNED AND THE SCROLL WALKS THE PRACTICES.
+   *
+   * The stage holds still while the page scrolls through it, one practice at a
+   * time from Authentication through to the last, then releases. `revealTab`
+   * keeps the rail's own scroll area following along, so the highlighted entry
+   * is always visible even though the rail holds seventeen of them.
+   *
+   * Desktop only — this whole two-column stage is `hidden lg:grid`, and below
+   * that breakpoint the practices are an accordion that is left alone.
+   */
+  const {
+    ref: stageRef,
+    goTo,
+    pinned: scrollDriven,
+  } = usePinnedSequence<HTMLDivElement>({
+    count: securityTopics.length,
+    scrollPerStep: SCROLL_PER_PRACTICE,
+    onIndex: useCallback(
+      (i: number) => {
+        select(securityTopics[i].id, i)
+      },
+      [select],
+    ),
+  })
+
+  /**
+   * Selection first so the rail answers immediately, then the page moves onto
+   * that practice's slice — `goTo` mutes the scroll updates it is about to
+   * cause, and does nothing at all when the rail is not pinned.
+   */
+  const goToTopic = useCallback(
+    (i: number) => {
+      const topic = securityTopics[i]
+      if (!topic) return
+      select(topic.id, i)
+      goTo(i)
+    },
+    [select, goTo],
+  )
+
+  const activeIndex = Math.max(
+    0,
+    securityTopics.findIndex((t) => t.id === activeTopicId),
+  )
+
   // Roving-tabindex keyboard support, matching the Skills rail.
   const onRailKeyDown = (e: React.KeyboardEvent) => {
     const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End']
@@ -304,186 +359,211 @@ export function SecuritySection() {
       next = (i - 1 + securityTopics.length) % securityTopics.length
     if (e.key === 'Home') next = 0
     if (e.key === 'End') next = securityTopics.length - 1
-    select(securityTopics[next].id, next)
-    tabRefs.current[next]?.focus()
+    goToTopic(next)
+    // preventScroll: the tab lives inside the pinned stage, so the browser's
+    // own scroll-into-view would fight the scroll we just started.
+    tabRefs.current[next]?.focus({ preventScroll: true })
   }
 
   return (
-    <section
-      id="security"
-      data-accent="cobalt"
-      className="relative isolate py-28 sm:py-36 lg:py-44"
-    >
-      <div className="atmosphere" aria-hidden />
-      <Container>
-        <SectionHeading
-          index="05"
-          label="Approach"
-          question="How do I keep it safe?"
-          title="How I keep production systems safe"
-          description="Security handled as a build-time constraint, not an afterthought — from token handling and RBAC to CSP, headers and dependency hygiene."
-        />
+    <Section id="security" accent="cobalt" atmosphere>
+      <SectionHeading
+        index="05"
+        label="Approach"
+        question="How do I keep it safe?"
+        title="How I keep production systems safe"
+        description="Security handled as a build-time constraint, not an afterthought — from token handling and RBAC to CSP, headers and dependency hygiene."
+      />
 
-        {/* Desktop: sticky tab rail + detail panel */}
-        <div className="rhythm-lead hidden gap-10 lg:grid lg:grid-cols-12">
-          <div className="min-w-0 lg:col-span-4">
-            <div className="sticky top-28">
-              <div className="type-metadata mb-4">
-                {securityTopics.length} practices
-              </div>
-              <div
-                ref={railRef}
-                role="tablist"
-                aria-orientation="vertical"
-                aria-label="Security practices"
-                onKeyDown={onRailKeyDown}
-                className="custom-scrollbar flex max-h-[62vh] flex-col overflow-y-auto pr-2"
-              >
-                {securityTopics.map((topic, i) => {
-                  const Icon = topic.icon
-                  const isActive = activeTopicId === topic.id
-                  return (
-                    <button
-                      key={topic.id}
-                      ref={(el) => {
-                        tabRefs.current[i] = el
-                      }}
-                      type="button"
-                      role="tab"
-                      id={`sec-tab-${topic.id}`}
-                      aria-selected={isActive}
-                      aria-controls="sec-panel"
-                      tabIndex={isActive ? 0 : -1}
-                      onClick={() => select(topic.id, i)}
-                      className={`flex items-center gap-3 border-l-2 py-3 pl-4 pr-3 text-left text-sm transition-colors duration-300 ease-editorial ${
-                        isActive
-                          ? 'border-accent-strong font-medium text-foreground'
-                          : 'border-line text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">{topic.title}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="min-w-0 lg:col-span-8">
-            {/* `key` remounts the panel, so the CSS enter animation replays on
-                every change — the crossfade without an animation runtime. */}
-            <div
-              key={activeTopic.id}
-              role="tabpanel"
-              id="sec-panel"
-              aria-labelledby={`sec-tab-${activeTopic.id}`}
-              tabIndex={0}
-              className="animate-fade-in-up surface-accent rounded-2xl p-8 focus-visible:outline-none md:p-10"
-            >
-              <div className="flex items-center gap-4">
-                <div className="rounded-xl border border-line bg-background p-3 text-accent-strong">
-                  <activeTopic.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <span className="type-metadata">Practice</span>
-                  <h3 className="type-engineering mt-1 text-foreground">
-                    {activeTopic.title}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="mt-7">
-                <span className="type-metadata">Approach</span>
-                <p className="mt-2 text-[0.975rem] leading-relaxed text-muted-foreground">
-                  {activeTopic.myApproach}
-                </p>
-              </div>
-
-              <div className="mt-7 rounded-xl border border-line bg-[rgb(var(--accent)/0.09)] p-6">
-                <span className="type-metadata flex items-center gap-2 text-muted-foreground">
-                  <CheckCircle className="h-3.5 w-3.5" /> In practice
+      {/* Desktop: the pinned stage — tab rail + detail panel. It holds still
+          in the viewport while the page scrolls through all seventeen. */}
+      <div
+        ref={stageRef}
+        className="rhythm-lead hidden gap-10 lg:grid lg:grid-cols-12"
+      >
+        <div data-seq className="min-w-0 lg:col-span-4">
+          <div className="sticky top-28">
+            {/* Pinned, the rail is the only thing telling the visitor that
+                scrolling is still going somewhere — so it says how far
+                through the seventeen they have got. */}
+            <div className="mb-4">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="type-metadata text-foreground">
+                  {securityTopics.length} practices
                 </span>
-                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  {activeTopic.myBestPractices.map((practice, i) => (
-                    <li key={i} className="flex gap-2.5">
-                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-accent-strong" />
-                      <span>{practice}</span>
-                    </li>
-                  ))}
-                </ul>
+                <span className="type-metadata">
+                  {String(activeIndex + 1).padStart(2, '0')} /{' '}
+                  {String(securityTopics.length).padStart(2, '0')}
+                </span>
               </div>
+              <div className="mt-2.5 h-px w-full bg-line">
+                <div
+                  aria-hidden
+                  className="h-px origin-left bg-accent-strong transition-transform duration-500 ease-editorial"
+                  style={{
+                    transform: `scaleX(${(activeIndex + 1) / securityTopics.length})`,
+                  }}
+                />
+              </div>
+              {scrollDriven && (
+                <p className="type-metadata mt-2.5 text-muted-foreground">
+                  Scroll to advance
+                </p>
+              )}
+            </div>
+            <div
+              ref={railRef}
+              role="tablist"
+              aria-orientation="vertical"
+              aria-label="Security practices"
+              onKeyDown={onRailKeyDown}
+              className="custom-scrollbar flex max-h-[62vh] flex-col overflow-y-auto pr-2"
+            >
+              {securityTopics.map((topic, i) => {
+                const Icon = topic.icon
+                const isActive = activeTopicId === topic.id
+                return (
+                  <button
+                    key={topic.id}
+                    ref={(el) => {
+                      tabRefs.current[i] = el
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`sec-tab-${topic.id}`}
+                    aria-selected={isActive}
+                    aria-controls="sec-panel"
+                    tabIndex={isActive ? 0 : -1}
+                    onClick={() => goToTopic(i)}
+                    className={`flex items-center gap-3 border-l-2 py-3 pl-4 pr-3 text-left text-sm transition-colors duration-300 ease-editorial ${
+                      isActive
+                        ? 'border-accent-strong font-medium text-foreground'
+                        : 'border-line text-muted-foreground hover:border-foreground/30 hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{topic.title}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>
 
-        {/* Mobile: accordion. Height animates via the 0fr→1fr grid technique —
-            pure CSS, no measurement, and it collapses correctly on resize. */}
-        <div className="rhythm-lead flex flex-col gap-3 lg:hidden">
-          {securityTopics.map((topic) => {
-            const Icon = topic.icon
-            const isExpanded = activeTopicId === topic.id
-            return (
-              <div
-                key={topic.id}
-                className="surface overflow-hidden rounded-xl"
-              >
-                <h3>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTopicId(isExpanded ? '' : topic.id)}
-                    aria-expanded={isExpanded}
-                    aria-controls={`sec-acc-${topic.id}`}
-                    className={`flex w-full items-center justify-between gap-3 p-4 text-left transition-colors ${
-                      isExpanded ? 'text-foreground' : 'text-muted-foreground'
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <Icon className="h-4 w-4 flex-shrink-0" />
-                      <span className="text-sm font-medium">{topic.title}</span>
-                    </span>
-                    <ChevronDown
-                      className={`h-4 w-4 flex-shrink-0 transition-transform duration-300 ${
-                        isExpanded ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
+        <div data-seq className="min-w-0 lg:col-span-8">
+          {/* `key` remounts the panel, so the CSS enter animation replays on
+              every change — the crossfade without an animation runtime. */}
+          <div
+            key={activeTopic.id}
+            role="tabpanel"
+            id="sec-panel"
+            aria-labelledby={`sec-tab-${activeTopic.id}`}
+            tabIndex={0}
+            className="animate-fade-in-up surface-accent rounded-2xl p-8 focus-visible:outline-none md:p-10 lg:min-h-[520px]"
+          >
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl border border-line bg-background p-3 text-accent-strong">
+                <activeTopic.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="type-metadata">Practice</span>
+                <h3 className="type-engineering mt-1 text-foreground">
+                  {activeTopic.title}
                 </h3>
+              </div>
+            </div>
 
-                <div
-                  id={`sec-acc-${topic.id}`}
-                  data-open={isExpanded}
-                  className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-editorial motion-reduce:transition-none data-[open=true]:grid-rows-[1fr]"
+            <div className="mt-7">
+              <span className="type-metadata">Approach</span>
+              <p className="mt-2 text-[0.975rem] leading-relaxed text-muted-foreground">
+                {activeTopic.myApproach}
+              </p>
+            </div>
+
+            <div className="mt-7 rounded-xl border border-line bg-[rgb(var(--accent)/0.09)] p-6">
+              <span className="type-metadata flex items-center gap-2 text-muted-foreground">
+                <CheckCircle className="h-3.5 w-3.5" /> In practice
+              </span>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {activeTopic.myBestPractices.map((practice, i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-accent-strong" />
+                    <span>{practice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile: accordion. Height animates via the 0fr→1fr grid technique —
+          pure CSS, no measurement, and it collapses correctly on resize. */}
+      <div className="rhythm-lead flex flex-col gap-3 lg:hidden">
+        {securityTopics.map((topic) => {
+          const Icon = topic.icon
+          const isExpanded = activeTopicId === topic.id
+          return (
+            <div
+              key={topic.id}
+              data-seq
+              className="surface overflow-hidden rounded-xl"
+            >
+              <h3>
+                <button
+                  type="button"
+                  onClick={() => setActiveTopicId(isExpanded ? '' : topic.id)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`sec-acc-${topic.id}`}
+                  className={`flex w-full items-center justify-between gap-3 p-4 text-left transition-colors ${
+                    isExpanded ? 'text-foreground' : 'text-muted-foreground'
+                  }`}
                 >
-                  <div className="overflow-hidden">
-                    <div className="space-y-4 border-t border-line p-5">
-                      <div>
-                        <span className="type-metadata">Approach</span>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                          {topic.myApproach}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-line bg-[rgb(var(--accent)/0.09)] p-4">
-                        <span className="type-metadata text-muted-foreground">
-                          In practice
-                        </span>
-                        <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-                          {topic.myBestPractices.map((practice, i) => (
-                            <li key={i} className="flex gap-2.5">
-                              <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-accent-strong" />
-                              <span>{practice}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                  <span className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm font-medium">{topic.title}</span>
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 flex-shrink-0 transition-transform duration-300 ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+              </h3>
+
+              <div
+                id={`sec-acc-${topic.id}`}
+                data-open={isExpanded}
+                className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-editorial motion-reduce:transition-none data-[open=true]:grid-rows-[1fr]"
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-4 border-t border-line p-5">
+                    <div>
+                      <span className="type-metadata">Approach</span>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {topic.myApproach}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-line bg-[rgb(var(--accent)/0.09)] p-4">
+                      <span className="type-metadata text-muted-foreground">
+                        In practice
+                      </span>
+                      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                        {topic.myBestPractices.map((practice, i) => (
+                          <li key={i} className="flex gap-2.5">
+                            <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-accent-strong" />
+                            <span>{practice}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </Container>
-    </section>
+            </div>
+          )
+        })}
+      </div>
+    </Section>
   )
 }

@@ -293,14 +293,18 @@
 
   /* The same word, hollow — a mis-registered second impression sitting behind
      the solid one. Two copies drifting at different rates is what gives the
-     chapter cards depth without a single image. */
+     chapter cards depth without a single image.
+
+     The stroke is faint on purpose: it is competing for the same pixels as the
+     word in front of it, and every point of contrast it gains is one the
+     readable copy loses. */
   .type-ghost {
     color: transparent;
-    -webkit-text-stroke: 1px rgb(var(--accent) / 0.42);
+    -webkit-text-stroke: 1px rgb(var(--accent) / 0.28);
   }
   @supports not (-webkit-text-stroke: 1px red) {
     .type-ghost {
-      color: rgb(var(--accent) / 0.14);
+      color: rgb(var(--accent) / 0.1);
     }
   }
 }
@@ -493,6 +497,45 @@
       rgb(var(--accent) / calc(0.13 * var(--atmos))),
       transparent
     );
+  }
+
+  /* ---- THE READABILITY VEIL ----------------------------------------------
+     Everything behind the page moves: the world camera travels with scroll,
+     three accent fields drift on their own clocks, two light pools parallax.
+     That is the environment working as designed — but body copy laid straight
+     over a moving field has a contrast ratio that changes *while you are
+     reading it*, which is the one thing no amount of atmosphere is worth.
+
+     So every content section carries a veil of the page colour: full strength
+     across the whole measure, ramped in and out over a fixed 140px at each end
+     so the boundary between two sections never becomes a visible band. The
+     ramps sit inside the section's own vertical padding, which means the text
+     itself is always over the flat part of it.
+
+     The world still reads — through the veil, and at full strength in the
+     chapter edges between sections, which carry no veil at all. Those become
+     the windows: the environment opens up exactly where there is nothing to
+     read, and steps back where there is.
+  */
+  .section-veil {
+    --veil: 0.7;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(var(--base) / 0) 0,
+      rgb(var(--base) / var(--veil)) 140px,
+      rgb(var(--base) / var(--veil)) calc(100% - 140px),
+      rgb(var(--base) / 0) 100%
+    );
+  }
+
+  /* The live scene is brighter and busier than the CSS atmosphere it fades
+     over, so it needs holding back harder. */
+  [data-world-status='ready'] .section-veil {
+    --veil: 0.84;
   }
 
   /* ==========================================================================
@@ -745,6 +788,14 @@
     [data-anim-init='stagger'] > * {
       opacity: 0;
       transform: translate3d(0, var(--anim-y, 24px), 0);
+    }
+    /* A section that plays its beats one at a time. The root keeps the
+       attribute for the life of the page and each beat drops `data-seq` as
+       its turn comes, so what is still hidden is exactly what has not yet
+       entered — including anything a fast scroll queued behind it. */
+    [data-anim-init='sequence'] [data-seq] {
+      opacity: 0;
+      transform: translate3d(0, var(--anim-y, 22px), 0);
     }
     /* masked text-reveal lines wait for SplitText + the tween */
     [data-anim-init='text'] {

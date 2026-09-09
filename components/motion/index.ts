@@ -1,4 +1,6 @@
 export { ScrollReveal, type RevealVariant } from './scroll-reveal'
 export { TextReveal } from './text-reveal'
+export { Sequence } from './sequence'
+export { usePinnedSequence } from './use-pinned-sequence'
 export { Parallax } from './parallax'
 export { ChapterEdge } from './chapter-edge'

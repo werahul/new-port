@@ -1,6 +1,4 @@
 import { cn } from '@/lib/utils'
-import { Reveal } from './reveal'
-import { TextReveal } from '@/components/motion/text-reveal'
 
 interface SectionHeadingProps {
   /** running index, e.g. "01" — rendered as a ghost chapter mark, not a label */
@@ -24,13 +22,20 @@ interface SectionHeadingProps {
 
 /**
  * The single canonical section header: a METADATA eyebrow that names the chapter
- * and the question it answers, an oversized ghost numeral, and a DISPLAY title
- * that rises out of a mask line-by-line.
+ * and the question it answers, an oversized ghost numeral, and a DISPLAY title.
  *
  * The numeral and the soft accent bloom behind it are the section's colour
  * identity. They matter more than they look: the `.atmosphere` field is
  * suppressed while the 3D world is running (it would seam at every boundary), so
  * without this a section had no hue of its own on the primary experience.
+ *
+ * The three text rows are marked `data-seq`, which makes them the first three
+ * beats of the enclosing <Sequence> — eyebrow, then title, then description, in
+ * that order and never at the same time. They used to animate through three
+ * different mechanisms at once (an IntersectionObserver fade, a SplitText
+ * line-by-line mask, a delayed fade), which is a lot of simultaneous movement
+ * to put a reader's eye through before they have read a word. Outside a
+ * Sequence the attribute is inert and the heading simply renders.
  */
 export function SectionHeading({
   index,
@@ -72,18 +77,20 @@ export function SectionHeading({
         )}
       />
 
-      <Reveal className="relative flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div
+        data-seq
+        className="relative flex flex-wrap items-center gap-x-3 gap-y-2"
+      >
         <span className="type-metadata text-foreground">{label}</span>
         <span className="rule-accent w-10" aria-hidden />
         {question && (
           <span className="type-metadata type-metadata-accent">{question}</span>
         )}
-      </Reveal>
+      </div>
 
-      <TextReveal
-        as={Tag}
+      <Tag
+        data-seq
         id={id}
-        split="lines"
         className={cn(
           'relative mt-6 type-display-sm max-w-[20ch] text-balance text-foreground',
           align === 'center' && 'max-w-[18ch]',
@@ -91,19 +98,18 @@ export function SectionHeading({
         )}
       >
         {title}
-      </TextReveal>
+      </Tag>
 
       {description && (
-        <Reveal
-          as="p"
-          delay={90}
+        <p
+          data-seq
           className={cn(
             'relative mt-6 max-w-prose text-pretty text-[1.0125rem] leading-[1.75] text-muted-foreground',
             align === 'center' && 'mx-auto',
           )}
         >
           {description}
-        </Reveal>
+        </p>
       )}
     </div>
   )

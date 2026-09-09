@@ -27,7 +27,10 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative border-t border-line">
+    <footer className="relative isolate border-t border-line">
+      {/* The world keeps moving behind the footer too, and the email is the
+          one string on the page a visitor has to read character by character. */}
+      <div className="section-veil" aria-hidden />
       <Container className="py-16 lg:py-20">
         <Parallax travel={44} className="flex flex-col gap-4">
           <span className="type-metadata">Get in touch</span>

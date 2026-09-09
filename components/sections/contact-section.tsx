@@ -7,7 +7,6 @@ import {
   Section,
   SectionHeading,
 } from '@/components/primitives'
-import { ScrollReveal } from '@/components/motion'
 import { contactChannels, profile, socials } from '@/content/profile'
 
 type Status = 'idle' | 'success' | 'error' | 'mailto'
@@ -139,7 +138,7 @@ export function ContactSection() {
       />
 
       <div className="rhythm-lead grid gap-12 lg:grid-cols-12">
-        <ScrollReveal variant="fade-up" className="lg:col-span-5">
+        <div data-seq className="lg:col-span-5">
           <div className="flex flex-col divide-y divide-border border-y border-line">
             {contactChannels.map((c) => {
               const inner = (
@@ -193,9 +192,9 @@ export function ContactSection() {
               })}
             </div>
           </div>
-        </ScrollReveal>
+        </div>
 
-        <ScrollReveal variant="fade-up" delay={0.08} className="lg:col-span-7">
+        <div data-seq className="lg:col-span-7">
           <form
             onSubmit={handleSubmit}
             className="relative surface rounded-2xl p-6 sm:p-8"
@@ -349,7 +348,7 @@ export function ContactSection() {
               </p>
             </div>
           </form>
-        </ScrollReveal>
+        </div>
       </div>
     </Section>
   )

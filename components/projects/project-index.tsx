@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { ScrollReveal } from '@/components/motion'
 import { useGsapScope } from '@/lib/animation/use-gsap-scope'
 import { MQ } from '@/lib/animation/config'
 import { featuredProjects, secondaryProjects } from '@/content/projects'
@@ -279,10 +278,13 @@ export function ProjectIndex() {
         </div>
 
         <div data-project-list>
-          <ScrollReveal as="ul" stagger variant="fade-up" distance={22}>
+          {/* One row is one beat of the section's sequence — the five builds
+              arrive in order, the way you read them. */}
+          <ul>
             {featuredProjects.map((p) => (
               <li
                 key={p.slug}
+                data-seq
                 data-project-row
                 className="border-t border-line last:border-b"
               >
@@ -342,11 +344,11 @@ export function ProjectIndex() {
                 </TransitionLink>
               </li>
             ))}
-          </ScrollReveal>
+          </ul>
         </div>
 
         {/* secondary work */}
-        <div className="rhythm-block border-t border-line pt-12">
+        <div data-seq className="rhythm-block border-t border-line pt-12">
           <div className="type-metadata">Also shipped</div>
           <ul className="mt-6 grid gap-x-12 sm:grid-cols-2">
             {secondaryProjects.map((p) => (

@@ -2,7 +2,6 @@
 
 import type { CSSProperties } from 'react'
 import { SkillTag } from '@/components/primitives'
-import { ScrollReveal } from '@/components/motion'
 import { useGsapScope } from '@/lib/animation/use-gsap-scope'
 import { DUR, EASE, MQ } from '@/lib/animation/config'
 import { experience } from '@/content/experience'
@@ -14,9 +13,11 @@ const TOTAL = String(experience.length).padStart(2, '0')
  * draws on scroll, a node that lights as each role is reached, a background hue
  * that shifts per role, and content that reveals in sequence.
  *
- * Content reveal uses the shared <ScrollReveal> (proven on every breakpoint).
- * The rail / node / wash are a thin decorative layer on top — if the animation
- * chunk never loads, nothing is hidden, the rail is just a static hairline.
+ * Content reveal is left to the enclosing <Sequence>: each entry's meta column
+ * and body are `data-seq` beats, so a role arrives as two steps in order rather
+ * than as two blocks appearing together. The rail / node / wash are a thin
+ * decorative layer on top — if the animation chunk never loads, nothing is
+ * hidden, the rail is just a static hairline.
  */
 export function ExperienceJourney() {
   const ref = useGsapScope<HTMLDivElement>(({ gsap, ScrollTrigger, scope, mm }) => {
@@ -170,11 +171,7 @@ export function ExperienceJourney() {
             </span>
 
             <div className="grid gap-6 lg:grid-cols-[190px_1fr] lg:gap-12">
-              <ScrollReveal
-                variant="fade-up"
-                distance={18}
-                className="flex flex-col gap-1.5"
-              >
+              <div data-seq className="flex flex-col gap-1.5">
                 <span className="type-metadata text-muted-foreground">
                   {item.index} / {TOTAL}
                 </span>
@@ -182,9 +179,9 @@ export function ExperienceJourney() {
                 <span className="type-metadata text-muted-foreground">
                   {item.location}
                 </span>
-              </ScrollReveal>
+              </div>
 
-              <ScrollReveal as="div" stagger={0.07} distance={20}>
+              <div data-seq>
                 <h3 className="type-engineering text-foreground">
                   {item.role}
                   <span className="text-muted-foreground"> · {item.company}</span>
@@ -221,7 +218,7 @@ export function ExperienceJourney() {
                     <SkillTag key={t}>{t}</SkillTag>
                   ))}
                 </div>
-              </ScrollReveal>
+              </div>
             </div>
           </article>
         ))}

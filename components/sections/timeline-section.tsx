@@ -1,4 +1,4 @@
-import { MagneticButton, Reveal, Section, SectionHeading } from '@/components/primitives'
+import { MagneticButton, Section, SectionHeading } from '@/components/primitives'
 import { ExperienceJourney } from './experience-journey'
 import { profile } from '@/content/profile'
 
@@ -15,11 +15,11 @@ export function TimelineSection() {
 
       <ExperienceJourney />
 
-      <Reveal className="rhythm-lead border-t border-line pt-10">
+      <div data-seq className="rhythm-lead border-t border-line pt-10">
         <MagneticButton href={profile.resumeUrl} target="_blank" variant="line" withArrow>
           Download full résumé
         </MagneticButton>
-      </Reveal>
+      </div>
     </Section>
   )
 }

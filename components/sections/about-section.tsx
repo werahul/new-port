@@ -1,6 +1,5 @@
 import { ArrowDown } from 'lucide-react'
 import { Section, SectionHeading } from '@/components/primitives'
-import { ScrollReveal } from '@/components/motion'
 import { profile } from '@/content/profile'
 
 /**
@@ -34,15 +33,20 @@ export function AboutSection() {
         description="I started in the browser and worked outward — into APIs, data models and the architecture that keeps a product coherent as it grows."
       />
 
-      {/* The quiet beat of the page: one statement, given room. */}
-      <ScrollReveal
-        variant="fade-up"
-        className="rhythm-lead grid gap-10 lg:grid-cols-12 lg:gap-16"
-      >
-        <p className="text-pretty text-[1.35rem] leading-[1.5] tracking-tight text-foreground/90 lg:col-span-7 lg:text-[1.6rem]">
+      {/* The quiet beat of the page: one statement, given room. Each block
+          below is a beat of the section's sequence, so they arrive in reading
+          order rather than all at once. */}
+      <div className="rhythm-lead grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <p
+          data-seq
+          className="text-pretty text-[1.35rem] leading-[1.5] tracking-tight text-foreground/90 lg:col-span-7 lg:text-[1.6rem]"
+        >
           {profile.summary}
         </p>
-        <div className="space-y-5 text-[0.975rem] leading-relaxed text-muted-foreground lg:col-span-4 lg:col-start-9 lg:pt-2">
+        <div
+          data-seq
+          className="space-y-5 text-[0.975rem] leading-relaxed text-muted-foreground lg:col-span-4 lg:col-start-9 lg:pt-2"
+        >
           <p>
             I care about code that lasts: clear boundaries, honest naming and
             interfaces that stay calm under real data. Good engineering, to me,
@@ -56,18 +60,14 @@ export function AboutSection() {
             <ArrowDown className="h-3.5 w-3.5" />
           </a>
         </div>
-      </ScrollReveal>
+      </div>
 
       {/* Figures at a scale that reads as confidence rather than a stat strip. */}
-      <ScrollReveal
-        stagger
-        variant="fade-up"
-        distance={18}
-        className="rhythm-block grid border-t border-line sm:grid-cols-3"
-      >
+      <div className="rhythm-block grid border-t border-line sm:grid-cols-3">
         {profile.stats.map((stat) => (
           <div
             key={stat.label}
+            data-seq
             className="border-b border-line py-8 sm:border-b-0 sm:border-r sm:px-8 sm:py-10 sm:last:border-r-0 sm:first:pl-0 sm:last:pr-0"
           >
             <div className="font-display text-[3.5rem] font-medium leading-none tracking-tighter text-foreground lg:text-[4.5rem]">
@@ -78,17 +78,15 @@ export function AboutSection() {
             </div>
           </div>
         ))}
-      </ScrollReveal>
+      </div>
 
-      <ScrollReveal
-        as="ol"
-        stagger
-        variant="fade-up"
-        distance={22}
-        className="rhythm-block grid gap-x-10 gap-y-12 md:grid-cols-3"
-      >
+      <ol className="rhythm-block grid gap-x-10 gap-y-12 md:grid-cols-3">
         {principles.map((p, i) => (
-          <li key={p.title} className="relative border-t border-line pt-7">
+          <li
+            key={p.title}
+            data-seq
+            className="relative border-t border-line pt-7"
+          >
             <span
               aria-hidden
               className="absolute inset-x-0 top-0 h-px w-12 bg-accent"
@@ -104,7 +102,7 @@ export function AboutSection() {
             </p>
           </li>
         ))}
-      </ScrollReveal>
+      </ol>
     </Section>
   )
 }
