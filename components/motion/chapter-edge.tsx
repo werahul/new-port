@@ -268,8 +268,6 @@ export function ChapterEdge({
           )}
         </div>
       </Container>
-
-      // ssjkfhkjsnfkl
     </div>
   )
 }
