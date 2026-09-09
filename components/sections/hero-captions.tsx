@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { ArrowDown } from 'lucide-react'
 import { Container } from '@/components/primitives'
 import { heroStations, stationCount } from '@/content/world'
-import { worldPath, useWorldStore } from '@/lib/world/store'
+import { worldPath } from '@/lib/world/store'
 import { prefersReducedMotion } from '@/lib/animation/reduced-motion'
 
 const smoothstep = (t: number) => {
@@ -20,11 +20,14 @@ const smoothstep = (t: number) => {
  * same motion. One rAF loop, driven imperatively; nothing re-renders.
  */
 export function HeroCaptions() {
-  const enabled = useWorldStore((s) => s.enabled)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!enabled) return
+    // Visibility is CSS (`.jr-cinematic-only`); this only decides whether the
+    // loop is worth running. `worldPath` advances whenever ScrollTrigger is
+    // wired, so the captions keep working even if the canvas never came up —
+    // which is the point of the atmospheric fallback behind them.
+    if (document.documentElement.dataset.world !== 'cinematic') return
     const root = rootRef.current
     if (!root) return
     const reduced = prefersReducedMotion()
@@ -72,14 +75,12 @@ export function HeroCaptions() {
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [enabled])
-
-  if (!enabled) return null
+  }, [])
 
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-10 pb-14 lg:pb-20"
+      className="jr-cinematic-only pointer-events-none absolute inset-x-0 bottom-0 z-10 pb-14 lg:pb-20"
     >
       <Container>
         <div className="relative h-[176px] max-w-lg">

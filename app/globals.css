@@ -14,9 +14,10 @@
    keep working everywhere: rgb(var(--token) / <alpha-value>).
    ========================================================================== */
 @layer base {
-  /* ---- DARK (default): deep graphite, never flat black ------------------ */
-  :root,
-  .dark {
+  /* ---- The single visual system: deep graphite, never flat black --------
+     This site is dark-only by design. There is no light variant, no toggle
+     and no persisted preference — one intentional environment, tuned once. */
+  :root {
     /* Neutral foundation */
     --base: 14 15 19; /* page — graphite with a cold undertone */
     --surface-1: 20 22 28; /* raised panel */
@@ -38,47 +39,19 @@
     --coral: 255 122 84;
     --pink: 244 114 182;
 
-    /* Atmosphere strength (dialled down in light mode) */
+    /* Atmosphere strength — global dimmers for the ambient colour fields and
+       the accent bloom. Kept as variables so the whole environment can be
+       tuned from two numbers rather than nine call sites. */
     --atmos: 1;
-    --glow: 0.55;
+    --glow: 0.5;
 
     color-scheme: dark;
-  }
-
-  /* ---- LIGHT: warm ivory, near-black graphite type ---------------------- */
-  .light {
-    --base: 248 247 244;
-    --surface-1: 255 255 254;
-    --surface-2: 243 241 236;
-    --surface-3: 234 232 226;
-
-    --fg: 22 23 27;
-    --fg-muted: 92 96 106; /* 5.9:1 on --base */
-    --fg-faint: 133 137 147;
-
-    --line: 223 221 214;
-    --line-strong: 203 200 191;
-
-    /* Deeper accents so they hold their own against ivory */
-    --violet: 109 58 224;
-    --cobalt: 29 92 216;
-    --cyan: 11 116 140; /* 5.0:1 on --base */
-    --emerald: 6 120 84; /* 5.1:1 on --base */
-    --coral: 188 64 28;
-    --pink: 190 42 118;
-
-    --atmos: 0.55;
-    --glow: 0.22;
-
-    color-scheme: light;
   }
 
   /* ---- Semantic aliases -------------------------------------------------
      Existing components keep speaking Tailwind's semantic names; the names
      now resolve into the new foundation. */
-  :root,
-  .dark,
-  .light {
+  :root {
     --background: var(--base);
     --foreground: var(--fg);
     --muted-foreground: var(--fg-muted);
@@ -141,9 +114,7 @@
      Tailwind config rather than aliased here. A `--x: var(--accent)` alias
      declared at :root is computed at :root, so it would freeze to the root hue
      and ignore every `data-accent` further down the tree. */
-  :root,
-  .dark,
-  .light {
+  :root {
     --accent-foreground: var(--fg);
   }
 }
@@ -188,6 +159,16 @@
     background: rgb(var(--fg) / 0.3);
   }
 
+  /* While the world is being orbited, the pointer is doing something other
+     than reading. `user-select` matters here: a drag that starts on empty space
+     and travels across a paragraph would otherwise sweep a selection along
+     with it. Dragging never begins on text in the first place — see
+     ORBIT_BLOCKING in world-scene.ts — this covers the travel. */
+  body[data-orbiting] {
+    cursor: grabbing;
+    user-select: none;
+  }
+
   ::selection {
     background: rgb(var(--accent) / 0.3);
     color: rgb(var(--fg));
@@ -227,12 +208,16 @@
    the page reading like a résumé.
    ========================================================================== */
 @layer components {
+  /* Weight is the cheapest way to look loud and the fastest way to look
+     generic. Fraunces is variable, so 500 with optical sizing carries more
+     authority at display size than 600 ever did — the confidence comes from
+     the scale and the tracking, not from the stroke. */
   .type-display {
     font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: clamp(2.75rem, 1.1rem + 7vw, 8.5rem);
-    line-height: 0.92;
-    letter-spacing: -0.045em;
+    line-height: 0.94;
+    letter-spacing: -0.038em;
     font-optical-sizing: auto;
     overflow-wrap: break-word;
     hyphens: none;
@@ -240,37 +225,40 @@
 
   .type-display-sm {
     font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: clamp(2.1rem, 1.15rem + 3.7vw, 4.25rem);
-    line-height: 0.98;
-    letter-spacing: -0.036em;
+    line-height: 1.0;
+    letter-spacing: -0.032em;
     font-optical-sizing: auto;
     overflow-wrap: break-word;
   }
 
   .type-engineering {
     font-family: var(--font-sans), system-ui, sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: clamp(1.4rem, 1rem + 1.9vw, 2.3rem);
-    line-height: 1.14;
-    letter-spacing: -0.028em;
+    line-height: 1.2;
+    letter-spacing: -0.022em;
   }
 
   .type-project {
     font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: clamp(1.7rem, 1.2rem + 1.9vw, 2.6rem);
-    line-height: 1.02;
-    letter-spacing: -0.032em;
+    line-height: 1.06;
+    letter-spacing: -0.028em;
     font-optical-sizing: auto;
   }
 
+  /* The two technical tiers now sit in a fixed relationship — 0.14em for the
+     tighter stack labels, 0.18em for the wider section metadata — instead of
+     the arbitrary 0.1 / 0.16 they drifted into. */
   .type-technology {
     font-family: var(--font-mono), ui-monospace, monospace;
     font-weight: 500;
     font-size: 0.6875rem;
-    line-height: 1;
-    letter-spacing: 0.1em;
+    line-height: 1.1;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
@@ -278,8 +266,8 @@
     font-family: var(--font-mono), ui-monospace, monospace;
     font-weight: 400;
     font-size: 0.6875rem;
-    line-height: 1.1;
-    letter-spacing: 0.16em;
+    line-height: 1.15;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgb(var(--fg-muted));
   }
@@ -295,10 +283,10 @@
      register rather than another heading. */
   .type-edge {
     font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: clamp(2.9rem, 1rem + 8.6vw, 9.5rem);
-    line-height: 0.88;
-    letter-spacing: -0.05em;
+    line-height: 0.9;
+    letter-spacing: -0.042em;
     font-optical-sizing: auto;
     overflow-wrap: break-word;
   }
@@ -322,19 +310,25 @@
    ========================================================================== */
 @layer components {
   /* Translucent panel with an elegant, light-catching top edge. */
+  /* Less blur, more saturation. A 20px blur on a dark translucent panel mostly
+     produces mud; 14px keeps the sense of glass while letting the environment
+     behind it stay legible, and it is measurably cheaper to composite. The
+     depth comes from a two-stop shadow and a single hairline of light along the
+     top edge, not from the blur radius. */
   .surface {
     background:
       linear-gradient(
         180deg,
-        rgb(var(--surface-1) / 0.9) 0%,
-        rgb(var(--surface-1) / 0.62) 100%
+        rgb(var(--surface-1) / 0.88) 0%,
+        rgb(var(--surface-1) / 0.58) 100%
       );
     border: 1px solid rgb(var(--line));
-    backdrop-filter: blur(20px) saturate(1.15);
-    -webkit-backdrop-filter: blur(20px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.35);
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
     box-shadow:
-      0 1px 0 0 rgb(var(--fg) / 0.05) inset,
-      0 20px 50px -30px rgb(0 0 0 / 0.7);
+      0 1px 0 0 rgb(var(--fg) / 0.06) inset,
+      0 2px 6px -2px rgb(0 0 0 / 0.4),
+      0 24px 56px -32px rgb(0 0 0 / 0.75);
   }
 
   /* The same panel, tinted by the active world. */
@@ -347,23 +341,119 @@
       ),
       linear-gradient(
         180deg,
-        rgb(var(--surface-1) / 0.9) 0%,
-        rgb(var(--surface-1) / 0.6) 100%
+        rgb(var(--surface-1) / 0.88) 0%,
+        rgb(var(--surface-1) / 0.56) 100%
       );
     border: 1px solid rgb(var(--line));
-    backdrop-filter: blur(20px) saturate(1.15);
-    -webkit-backdrop-filter: blur(20px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.35);
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
     box-shadow:
-      0 1px 0 0 rgb(var(--fg) / 0.05) inset,
-      0 20px 50px -30px rgb(0 0 0 / 0.7);
+      0 1px 0 0 rgb(var(--fg) / 0.06) inset,
+      0 2px 6px -2px rgb(0 0 0 / 0.4),
+      0 24px 56px -32px rgb(0 0 0 / 0.75);
+  }
+
+  /* ---- THE WORLD'S CSS ATMOSPHERE ---------------------------------------
+     The layer behind every page, present whether or not WebGL is. Deliberately
+     built from gradients alone: `radial-gradient(closest-side, …)` already has
+     a perfectly smooth falloff, so none of this needs `filter: blur()` — which
+     on three large, slowly-transforming layers would re-rasterise every frame
+     for no visual gain. */
+
+  /* The ground plane in perspective. The single strongest cue that the page is
+     sitting inside a space rather than in front of a backdrop. */
+  .atmos-ground {
+    position: absolute;
+    inset: 40% -60% -25% -60%;
+    transform: perspective(560px) rotateX(64deg);
+    transform-origin: 50% 0%;
+    background-image:
+      linear-gradient(to right, rgb(var(--fg) / 0.075) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--fg) / 0.075) 1px, transparent 1px);
+    background-size: 88px 88px;
+    /* fades into fog at the horizon and out again underfoot */
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 16%,
+      #000 44%,
+      transparent 86%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 16%,
+      #000 44%,
+      transparent 86%
+    );
+  }
+
+  .atmos-field {
+    position: absolute;
+    border-radius: 999px;
+    will-change: transform;
+  }
+  .atmos-field-a {
+    top: -24%;
+    left: -12%;
+    width: min(72vw, 940px);
+    height: min(62vh, 680px);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--violet) / calc(0.34 * var(--atmos))),
+      transparent
+    );
+    animation: atmos-drift-a 42s ease-in-out infinite alternate;
+  }
+  .atmos-field-b {
+    right: -18%;
+    top: 18%;
+    width: min(58vw, 760px);
+    height: min(58vh, 620px);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--cobalt) / calc(0.26 * var(--atmos))),
+      transparent
+    );
+    animation: atmos-drift-b 55s ease-in-out infinite alternate;
+  }
+  .atmos-field-c {
+    bottom: -22%;
+    left: 24%;
+    width: min(64vw, 820px);
+    height: min(48vh, 520px);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--cyan) / calc(0.16 * var(--atmos))),
+      transparent
+    );
+    animation: atmos-drift-c 68s ease-in-out infinite alternate;
+  }
+
+  @keyframes atmos-drift-a {
+    to {
+      transform: translate3d(7%, 9%, 0) scale(1.14);
+    }
+  }
+  @keyframes atmos-drift-b {
+    to {
+      transform: translate3d(-9%, -7%, 0) scale(1.1);
+    }
+  }
+  @keyframes atmos-drift-c {
+    to {
+      transform: translate3d(5%, -10%, 0) scale(0.9);
+    }
   }
 
   /* Section atmosphere: a broad, soft field of the world's hue. Sits behind
      content, never above it.
 
-     Suppressed while the 3D world is running — the world already supplies the
-     atmosphere, and a per-section field layered on top of it turns every
-     section boundary into a visible seam. */
+     Suppressed once the 3D world has actually confirmed a frame — the world
+     supplies the atmosphere itself, and a per-section field layered on top of
+     it turns every section boundary into a visible seam. Keyed on the *ready*
+     status rather than on capability, so a world that never started keeps its
+     per-section colour. */
   .atmosphere {
     position: absolute;
     inset: 0;
@@ -372,7 +462,7 @@
     overflow: hidden;
     transition: opacity 0.6s ease;
   }
-  [data-world='on'] .atmosphere {
+  [data-world-status='ready'] .atmosphere {
     opacity: 0;
   }
   .atmosphere::before,
@@ -405,30 +495,113 @@
     );
   }
 
+  /* ==========================================================================
+     VERTICAL RHYTHM
+
+     Three steps, used everywhere, so the page has one cadence instead of a
+     different guess per section. Before this the gap between a section heading
+     and its content was written six different ways — mt-14 lg:mt-16, mt-14
+     lg:mt-20, mt-16 lg:mt-24, mt-16 lg:mt-20, mt-20 lg:mt-28, mt-14 — which is
+     exactly the kind of thing that reads as "slightly off" without ever being
+     obviously wrong.
+
+     Fluid rather than stepped: the rhythm should scale with the measure, not
+     jump at a breakpoint.
+     ========================================================================== */
+  .rhythm-lead {
+    margin-top: clamp(3.5rem, 2.6rem + 2.6vw, 5.5rem);
+  }
+  .rhythm-block {
+    margin-top: clamp(5rem, 3.4rem + 4.4vw, 8rem);
+  }
+  .rhythm-tight {
+    margin-top: clamp(2rem, 1.6rem + 1.2vw, 2.75rem);
+  }
+
+  /* ==========================================================================
+     HERO GEOMETRY
+
+     Decided *pre-paint* by the capability script's `data-world` stamp, not by
+     React state. The hero's whole shape — a multi-screen scroll descent with a
+     sticky viewport frame — depends on whether the journey is going to run, and
+     answering that in an effect meant every single load painted the wrong
+     layout first and then jumped to the right one.
+
+     Note the `:not()` on the flat rules: if the attribute is somehow absent,
+     the readable short hero is what you get, never the six-screen one with
+     nothing in it.
+     ========================================================================== */
+  html[data-world='cinematic'] .jr-hero-shell {
+    height: 380vh;
+  }
+  @media (min-width: 640px) {
+    html[data-world='cinematic'] .jr-hero-shell {
+      height: 470vh;
+    }
+  }
+  @media (min-width: 1024px) {
+    html[data-world='cinematic'] .jr-hero-shell {
+      height: 620vh;
+    }
+  }
+  html[data-world='cinematic'] .jr-hero-frame {
+    position: sticky;
+    top: 0;
+  }
+  html:not([data-world='cinematic']) .jr-cinematic-only {
+    display: none;
+  }
+  html[data-world='cinematic'] .jr-flat-only {
+    display: none;
+  }
+
   /* Directional scrim: opaque under the type, clearing toward the object.
      Heavier on small screens, where the text column spans the full width. */
   /* Phones: the text column spans the full width, so a directional scrim has
      nowhere to clear to. The veil is heaviest exactly where the headline sits
      and lifts above and below it, so the scene stays legible as a world instead
      of being flattened into a grey field for the whole 4-screen descent. */
+  /* Two layers, and the first one is the important one.
+
+     A purely directional scrim leaves the copy's contrast at the mercy of
+     whatever geometry and accent light happen to drift behind it — which, in a
+     world whose lighting is *designed* to swell on arrival at each district, is
+     not a risk worth carrying. The shield is a soft radial anchored to the copy
+     column, so body text keeps its ratio no matter what the scene is doing.
+     The directional gradient then does the aesthetic work of clearing toward
+     the object. */
   .hero-scrim {
-    background: linear-gradient(
-      180deg,
-      rgb(var(--base) / 0.62) 0%,
-      rgb(var(--base) / 0.88) 26%,
-      rgb(var(--base) / 0.88) 62%,
-      rgb(var(--base) / 0.45) 100%
-    );
+    background:
+      radial-gradient(
+        120% 46% at 50% 44%,
+        rgb(var(--base) / 0.86) 0%,
+        rgb(var(--base) / 0.6) 52%,
+        transparent 82%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--base) / 0.6) 0%,
+        rgb(var(--base) / 0.84) 26%,
+        rgb(var(--base) / 0.84) 62%,
+        rgb(var(--base) / 0.42) 100%
+      );
   }
   @media (min-width: 768px) {
     .hero-scrim {
-      background: linear-gradient(
-        100deg,
-        rgb(var(--base) / 0.94) 0%,
-        rgb(var(--base) / 0.66) 34%,
-        rgb(var(--base) / 0.1) 62%,
-        transparent 80%
-      );
+      background:
+        radial-gradient(
+          74% 64% at 24% 50%,
+          rgb(var(--base) / 0.9) 0%,
+          rgb(var(--base) / 0.58) 46%,
+          transparent 78%
+        ),
+        linear-gradient(
+          100deg,
+          rgb(var(--base) / 0.9) 0%,
+          rgb(var(--base) / 0.6) 32%,
+          rgb(var(--base) / 0.08) 60%,
+          transparent 80%
+        );
     }
   }
 
@@ -509,11 +682,6 @@
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  .light .grain-layer {
-    opacity: 0.035;
-    mix-blend-mode: multiply;
-  }
-
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--fg) / 0.22) transparent;
@@ -580,6 +748,20 @@
     }
     /* masked text-reveal lines wait for SplitText + the tween */
     [data-anim-init='text'] {
+      opacity: 0;
+    }
+
+    /* The hero hides its *parts*, never the whole block.
+       Hiding the wrapper meant that any delay in the animation chunk — or the
+       fail-safe firing — showed the visitor an empty hero, which reads exactly
+       like a page that failed to load. Hiding the parts means the worst case is
+       a correctly-composed hero appearing slightly early, in the right place.
+       The words are additionally clipped by `.jr-mask`, so they are simply
+       absent rather than faded. */
+    [data-anim-init='hero'] .jr-word {
+      transform: translate3d(0, 118%, 0);
+    }
+    [data-anim-init='hero'] .jr-item {
       opacity: 0;
     }
   }

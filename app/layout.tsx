@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter, Fraunces, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/ui/theme-provider'
 import { SmoothScroll } from '@/components/ui/smooth-scroll'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Grain } from '@/components/primitives'
 import { AmbientParallax } from '@/components/visual/ambient-parallax'
 import { World } from '@/components/visual/world'
 import { JourneyProgress } from '@/components/visual/journey-progress'
+import { WORLD_CAPABILITY_SCRIPT } from '@/lib/world/capability-script'
 import {
   isIndexable,
   siteDescription,
@@ -78,16 +78,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // `suppressHydrationWarning` is here for the capability script below, which
+  // stamps `data-world` on <html> before React hydrates. The site is dark-only:
+  // there is no theme to restore and nothing to flash.
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        {/* Set theme before paint to avoid a flash of the wrong color scheme */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=JSON.parse(localStorage.getItem('theme-storage')||'{}');var t=(s&&s.state&&s.state.theme)||'dark';var d=document.documentElement;d.classList.remove('light','dark');d.classList.add(t);d.style.colorScheme=t;}catch(e){}})();`,
-          }}
-        />
+        {/* Decide the hero's layout before the first paint. See the module for
+            why this cannot be a useEffect. */}
+        <script dangerouslySetInnerHTML={{ __html: WORLD_CAPABILITY_SCRIPT }} />
       </head>
       <body
         className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased`}
@@ -122,17 +122,17 @@ export default function RootLayout({
           Skip to content
         </a>
 
-        <ThemeProvider>
-          <SmoothScroll>
-            {/* One persistent 3D environment behind every section. The page
-                scrolls *through* it; it is never mounted inside a section. */}
-            <World />
-            <AmbientParallax />
-            <Sidebar />
-            <JourneyProgress />
-            <main id="main">{children}</main>
-          </SmoothScroll>
-        </ThemeProvider>
+        <SmoothScroll>
+          {/* One persistent environment behind every section. The page scrolls
+              *through* it; it is never mounted inside a section. `World` owns
+              both layers — the CSS atmosphere that is always present, and the
+              canvas that cross-fades over it once it has confirmed a frame. */}
+          <World />
+          <AmbientParallax />
+          <Sidebar />
+          <JourneyProgress />
+          <main id="main">{children}</main>
+        </SmoothScroll>
 
         <Grain />
       </body>

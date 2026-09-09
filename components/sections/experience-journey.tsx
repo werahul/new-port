@@ -24,19 +24,33 @@ export function ExperienceJourney() {
     const entries = gsap.utils.toArray<HTMLElement>('[data-jr-entry]', scope)
     const washes = gsap.utils.toArray<HTMLElement>('[data-jr-wash]', scope)
 
-    const lightNode = (entry: HTMLElement) => {
-      gsap.to(entry.querySelectorAll('[data-jr-node-ring]'), {
-        opacity: 1,
-        scale: 1,
-        duration: DUR.sm,
-        ease: EASE.out,
-      })
-      gsap.to(entry.querySelectorAll('[data-jr-node-core]'), {
-        opacity: 1,
-        scale: 1,
-        duration: DUR.sm,
-        ease: EASE.pop,
-      })
+    /**
+     * Built up front and paused, then played from the trigger.
+     *
+     * `gsap.context()` only captures animations created *synchronously* inside
+     * its body — anything created later, from a ScrollTrigger callback, is
+     * invisible to `ctx.revert()`. The previous version created these tweens
+     * inside `onEnter`, so killing the triggers on unmount left the tweens
+     * running and their inline styles written into a tree that was on its way
+     * out. Creating them here, paused, puts them back under the context.
+     */
+    const arrivalTimeline = (entry: HTMLElement, i: number) => {
+      const tl = gsap.timeline({ paused: true })
+      tl.to(
+        entry.querySelectorAll('[data-jr-node-ring]'),
+        { opacity: 1, scale: 1, duration: DUR.sm, ease: EASE.out },
+        0,
+      )
+        .to(
+          entry.querySelectorAll('[data-jr-node-core]'),
+          { opacity: 1, scale: 1, duration: DUR.sm, ease: EASE.pop },
+          0,
+        )
+        .to(washes[i], { opacity: 0.7, duration: DUR.lg, ease: EASE.inOut }, 0)
+      if (i > 0) {
+        tl.to(washes[i - 1], { opacity: 0, duration: DUR.lg, ease: EASE.inOut }, 0)
+      }
+      return tl
     }
 
     mm.add({ reduce: MQ.reduce, motionOk: MQ.motionOk }, (c) => {
@@ -75,32 +89,32 @@ export function ExperienceJourney() {
       }
 
       // 2 — per role: light the node, bring its hue up, drop the previous one.
+      const arrivals: Array<{ kill: () => void }> = []
       entries.forEach((entry, i) => {
         gsap.set(entry.querySelectorAll('[data-jr-node-ring],[data-jr-node-core]'), {
           opacity: 0,
           scale: 0.5,
         })
+        const tl = arrivalTimeline(entry, i)
+        arrivals.push(tl)
         const st = ScrollTrigger.create({
           trigger: entry,
           start: 'top 78%',
           once: true,
-          onEnter: () => {
-            lightNode(entry)
-            gsap.to(washes[i], { opacity: 0.7, duration: DUR.lg, ease: EASE.inOut })
-            if (i > 0) {
-              gsap.to(washes[i - 1], { opacity: 0, duration: DUR.lg, ease: EASE.inOut })
-            }
-          },
+          onEnter: () => tl.play(),
         })
         triggers.push(st)
       })
 
-      return () => triggers.forEach((t) => t.kill())
+      return () => {
+        triggers.forEach((t) => t.kill())
+        arrivals.forEach((t) => t.kill())
+      }
     })
   }, [])
 
   return (
-    <div ref={ref} className="relative mt-14 lg:mt-20">
+    <div ref={ref} className="rhythm-lead relative">
       {/* per-role background wash — subtle, one hue at a time */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         {experience.map((item) => (

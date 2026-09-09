@@ -325,7 +325,7 @@ export function SecuritySection() {
         />
 
         {/* Desktop: sticky tab rail + detail panel */}
-        <div className="mt-16 hidden gap-10 lg:mt-20 lg:grid lg:grid-cols-12">
+        <div className="rhythm-lead hidden gap-10 lg:grid lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-4">
             <div className="sticky top-28">
               <div className="type-metadata mb-4">
@@ -419,7 +419,7 @@ export function SecuritySection() {
 
         {/* Mobile: accordion. Height animates via the 0fr→1fr grid technique —
             pure CSS, no measurement, and it collapses correctly on resize. */}
-        <div className="mt-14 flex flex-col gap-3 lg:hidden">
+        <div className="rhythm-lead flex flex-col gap-3 lg:hidden">
           {securityTopics.map((topic) => {
             const Icon = topic.icon
             const isExpanded = activeTopicId === topic.id

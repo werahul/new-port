@@ -87,7 +87,7 @@ export function ScrollReveal({
   const baseDistance = distance ?? (variant === 'clip-up' ? 24 : 28)
 
   const ref = useGsapScope<HTMLElement>(
-    ({ gsap, scope, mm }) => {
+    ({ gsap, ScrollTrigger, scope, mm }) => {
       const strip = () => {
         scope.removeAttribute('data-anim-init')
       }
@@ -131,7 +131,23 @@ export function ScrollReveal({
             onComplete: strip,
           })
 
+          /**
+           * An element that is `display: none` at the current breakpoint (say,
+           * inside `lg:hidden`) never enters, so its trigger never fires and
+           * `strip()` never runs — leaving the pre-paint `opacity: 0` in place.
+           * The hook's fail-safe has long since been cleared by then, so if a
+           * resize later reveals the element it comes back invisible.
+           *
+           * Visible-without-its-entrance beats invisible, so drop the attribute
+           * as soon as we can see there is no box to animate.
+           */
+          const onRefresh = () => {
+            if (scope.getClientRects().length === 0) strip()
+          }
+          ScrollTrigger.addEventListener('refresh', onRefresh)
+
           return () => {
+            ScrollTrigger.removeEventListener('refresh', onRefresh)
             tween.scrollTrigger?.kill()
             tween.kill()
           }

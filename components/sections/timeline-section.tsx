@@ -15,7 +15,7 @@ export function TimelineSection() {
 
       <ExperienceJourney />
 
-      <Reveal className="mt-14 border-t border-line pt-10">
+      <Reveal className="rhythm-lead border-t border-line pt-10">
         <MagneticButton href={profile.resumeUrl} target="_blank" variant="line" withArrow>
           Download full résumé
         </MagneticButton>

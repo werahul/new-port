@@ -44,6 +44,15 @@ export function SkillsSection() {
   const gsapRef = useRef<GsapBundle | null>(null)
   const reducedRef = useRef(false)
   const busyRef = useRef(false)
+  /**
+   * The exit tween has to be reachable. It lives outside any `gsap.context`
+   * (it animates nodes that are about to be replaced, so it must survive the
+   * render that replaces them), which means nothing else can kill it — and if
+   * it is ever interrupted, its `onComplete` never runs, `busyRef` stays true,
+   * and the guard in `selectDomain` turns every later tab click into a no-op.
+   * The rail keeps highlighting; the panel never changes again.
+   */
+  const exitTweenRef = useRef<gsap.core.Tween | null>(null)
   const pendingIdRef = useRef(skillDomains[0].id)
   const firstRunRef = useRef(true)
   const listRef = useRef<HTMLDivElement>(null)
@@ -74,11 +83,16 @@ export function SkillsSection() {
   useEffect(() => {
     reducedRef.current = prefersReducedMotion()
     let cancelled = false
-    loadGsap().then((bundle) => {
-      if (!cancelled) gsapRef.current = bundle
-    })
+    loadGsap()
+      .then((bundle) => {
+        if (!cancelled) gsapRef.current = bundle
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
+      exitTweenRef.current?.kill()
+      exitTweenRef.current = null
+      busyRef.current = false
     }
   }, [])
 
@@ -145,7 +159,12 @@ export function SkillsSection() {
 
       const { gsap } = bundle
       const nodes = list.querySelectorAll('[data-skill-node]')
-      gsap.to(nodes, {
+      exitTweenRef.current?.kill()
+      const release = () => {
+        busyRef.current = false
+        exitTweenRef.current = null
+      }
+      exitTweenRef.current = gsap.to(nodes, {
         autoAlpha: 0,
         y: -8,
         filter: 'blur(4px)',
@@ -154,9 +173,12 @@ export function SkillsSection() {
         stagger: { each: 0.012, from: 'end' },
         overwrite: true,
         onComplete: () => {
-          busyRef.current = false
+          release()
           setActiveId(pendingIdRef.current)
         },
+        // Killed or overwritten mid-flight, the panel simply stays where it is
+        // — but the rail must not lock up because of it.
+        onInterrupt: release,
       })
     },
     [displayId],
@@ -249,7 +271,7 @@ export function SkillsSection() {
       </div>
 
       {/* ---- interactive ecosystem ----------------------------------- */}
-      <div className="mt-14 grid gap-8 lg:mt-16 lg:grid-cols-12 lg:gap-10">
+      <div className="rhythm-lead grid gap-8 lg:grid-cols-12 lg:gap-10">
         {/* rail */}
         <div className="min-w-0 lg:col-span-4">
           <div className="lg:sticky lg:top-28">

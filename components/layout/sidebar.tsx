@@ -9,8 +9,7 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Sun, Moon, Menu, X } from 'lucide-react'
-import { useTheme } from '@/components/ui/theme-provider'
+import { Menu, X } from 'lucide-react'
 import { useUIStore } from '@/lib/store'
 import { getLenis, scrollToId } from '@/components/ui/smooth-scroll'
 import { navItems } from '@/content/nav'
@@ -29,7 +28,6 @@ function focusables(root: HTMLElement) {
 }
 
 export function Sidebar() {
-  const { theme, toggleTheme } = useTheme()
   const { currentSection, setCurrentSection, isSidebarOpen, setSidebarOpen } =
     useUIStore()
   const [mounted, setMounted] = useState(false)
@@ -154,7 +152,6 @@ export function Sidebar() {
   )
 
   const hrefFor = (id: string) => (onHome ? `#${id}` : `/#${id}`)
-  const ThemeIcon = theme === 'light' ? Moon : Sun
 
   return (
     <>
@@ -204,20 +201,6 @@ export function Sidebar() {
               )
             })}
           </div>
-
-          <span className="mx-1 h-4 w-px bg-border" aria-hidden />
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={
-              mounted
-                ? `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`
-                : 'Toggle theme'
-            }
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {mounted ? <ThemeIcon className="h-4 w-4" /> : <span className="h-4 w-4" />}
-          </button>
         </nav>
       </div>
 
@@ -227,18 +210,6 @@ export function Sidebar() {
           RAHUL<span className="text-muted-foreground">/</span>
         </Link>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={
-              mounted
-                ? `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`
-                : 'Toggle theme'
-            }
-            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground"
-          >
-            {mounted ? <ThemeIcon className="h-4 w-4" /> : <span className="h-4 w-4" />}
-          </button>
           <button
             ref={openerRef}
             type="button"

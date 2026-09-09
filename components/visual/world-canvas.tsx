@@ -2,15 +2,9 @@
 
 import { useEffect, useRef } from 'react'
 import { createWorld, type WorldHandle } from '@/lib/world/world-scene'
-import { profileFor, type Tier } from '@/lib/world/quality'
-import { worldPath, useWorldStore } from '@/lib/world/store'
-
-interface Props {
-  tier: Tier
-  reduced: boolean
-  /** the world could not start — host should stop pretending it exists */
-  onFailure: () => void
-}
+import { profileFor } from '@/lib/world/quality'
+import { worldPath } from '@/lib/world/store'
+import type { WorldCanvasProps } from './world'
 
 /**
  * Owns the scene's lifetime. Deliberately thin: all the world logic is plain
@@ -20,82 +14,105 @@ interface Props {
  * The <canvas> is created imperatively rather than rendered by React. Teardown
  * calls `forceContextLoss()` to hand GPU memory back immediately, which
  * permanently kills that canvas element — so a canvas React would reuse across
- * a remount (Strict Mode in development, or a quality-tier change) would come
- * back with a dead context. Owning the element here guarantees every world gets
- * a fresh one.
+ * a remount (Strict Mode in development, or a retry) would come back with a
+ * dead context. Owning the element here guarantees every world gets a fresh one.
+ *
+ * Two things this component is careful about, both of which used to be silent
+ * failures:
+ *
+ *  1. It does not build the scene until the host has a real size. The previous
+ *     version fell back to `window.innerWidth` when `clientWidth` was 0, which
+ *     avoided a NaN aspect but permanently framed the camera against the wrong
+ *     box — with no path back, because only a window resize could correct it.
+ *  2. It reports readiness from an actual rendered frame, not from the fact
+ *     that construction did not throw.
  */
-export default function WorldCanvas({ tier, reduced, onFailure }: Props) {
+export default function WorldCanvas({ tier, onReady, onFailure }: WorldCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const failureRef = useRef(onFailure)
-  failureRef.current = onFailure
-
-  const setStation = useWorldStore((s) => s.setStation)
-  const setEntered = useWorldStore((s) => s.setEntered)
+  const onReadyRef = useRef(onReady)
+  const onFailureRef = useRef(onFailure)
+  onReadyRef.current = onReady
+  onFailureRef.current = onFailure
 
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
 
-    const canvas = document.createElement('canvas')
-    canvas.className = 'block h-full w-full'
-    canvas.setAttribute('aria-hidden', 'true')
-    host.appendChild(canvas)
-
-    const world: WorldHandle | null = createWorld({
-      canvas,
-      quality: profileFor(tier),
-      intro: true,
-      reduced,
-    })
-    if (!world) {
-      canvas.remove()
-      failureRef.current()
-      return
-    }
-
-    // The establishing shot runs on its own clock; the identity reveals after
-    // it has settled, so the visitor arrives somewhere before being sold to.
-    const enterTimer = window.setTimeout(() => setEntered(true), reduced ? 0 : 1500)
-
-    // Feed the camera from the shared ref, and publish the (low-frequency)
-    // station index for the UI.
+    let world: WorldHandle | null = null
+    let canvas: HTMLCanvasElement | null = null
     let raf = 0
-    let lastStation = -1
-    const pump = () => {
-      raf = requestAnimationFrame(pump)
-      world.setPath(worldPath.current)
-      const s = Math.round(world.stationF)
-      if (s !== lastStation) {
-        lastStation = s
-        setStation(s)
+    let sizeObserver: ResizeObserver | null = null
+    let disposed = false
+
+    const build = () => {
+      if (disposed || world) return
+      canvas = document.createElement('canvas')
+      canvas.className = 'block h-full w-full'
+      canvas.setAttribute('aria-hidden', 'true')
+      host.appendChild(canvas)
+
+      world = createWorld({
+        canvas,
+        quality: profileFor(tier),
+        intro: true,
+        // The first frame the render loop completes — a real frame, into a
+        // canvas with a real size. This is what `ready` means.
+        onFirstFrame: () => {
+          if (!disposed) onReadyRef.current()
+        },
+      })
+
+      if (!world) {
+        canvas.remove()
+        canvas = null
+        onFailureRef.current()
+        return
       }
+
+      // Feed the camera from the shared ref. Nothing is published back into
+      // React — every consumer that needs the station derives it from
+      // `worldPath` itself, so none of them depend on this loop still running.
+      const pump = () => {
+        raf = requestAnimationFrame(pump)
+        world!.setPath(worldPath.current)
+      }
+      raf = requestAnimationFrame(pump)
+      sync()
     }
-    raf = requestAnimationFrame(pump)
 
     const sync = () => {
+      if (!world) return
       if (document.hidden) world.stop()
       else world.start()
     }
-    sync()
+
+    // A host with no layout box yet cannot be framed correctly, and a scene
+    // built against a zero box never recovers. Wait for the box instead.
+    if (host.clientWidth > 0 && host.clientHeight > 0) {
+      build()
+    }
+
+    sizeObserver = new ResizeObserver(() => {
+      if (disposed) return
+      if (!world) {
+        if (host.clientWidth > 0 && host.clientHeight > 0) build()
+        return
+      }
+      world.resize()
+    })
+    sizeObserver.observe(host)
+
     document.addEventListener('visibilitychange', sync)
 
-    let rz = 0
-    const onResize = () => {
-      cancelAnimationFrame(rz)
-      rz = requestAnimationFrame(() => world.resize())
-    }
-    window.addEventListener('resize', onResize)
-
     return () => {
-      window.clearTimeout(enterTimer)
+      disposed = true
       cancelAnimationFrame(raf)
-      cancelAnimationFrame(rz)
+      sizeObserver?.disconnect()
       document.removeEventListener('visibilitychange', sync)
-      window.removeEventListener('resize', onResize)
-      world.dispose()
-      canvas.remove()
+      world?.dispose()
+      canvas?.remove()
     }
-  }, [tier, reduced, setStation, setEntered])
+  }, [tier])
 
   return <div ref={hostRef} className="h-full w-full" />
 }

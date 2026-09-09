@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { stations } from '@/content/world'
-import { worldPath, useWorldStore } from '@/lib/world/store'
+import { worldPath } from '@/lib/world/store'
 import { prefersReducedMotion } from '@/lib/animation/reduced-motion'
 import { cn } from '@/lib/utils'
 
@@ -20,17 +20,18 @@ const TOTAL = String(stations.length).padStart(2, '0')
  * index goes through React, and that changes a handful of times per page.
  */
 export function JourneyProgress() {
-  const enabled = useWorldStore((s) => s.enabled)
-  const storeStation = useWorldStore((s) => s.station)
   const rootRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)
-  const [fallbackStation, setFallbackStation] = useState(0)
+  const [active, setActive] = useState(0)
 
   useEffect(() => setReduced(prefersReducedMotion()), [])
 
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
+    // The camera path is the source of truth wherever the journey runs at all;
+    // otherwise raw document progress keeps the rail a useful affordance.
+    const cinematic = document.documentElement.dataset.world === 'cinematic'
     let raf = 0
     let cur = 0
     let lastStation = -1
@@ -39,25 +40,25 @@ export function JourneyProgress() {
 
     const loop = () => {
       raf = requestAnimationFrame(loop)
-      const target = enabled
+      const target = cinematic
         ? worldPath.current
         : Math.min(1, Math.max(0, window.scrollY / maxScroll()))
       cur += (target - cur) * (reduced ? 1 : 0.1)
       if (Math.abs(target - cur) < 0.0004) cur = target
       root.style.setProperty('--jp', cur.toFixed(4))
-      if (!enabled) {
-        const s = Math.round(cur * LAST)
-        if (s !== lastStation) {
-          lastStation = s
-          setFallbackStation(s)
-        }
+      // Derived here in both modes rather than read from the store. The store
+      // value was published by the canvas, so it froze wherever the canvas
+      // stopped — leaving the rail pointing at a station nobody was at.
+      const s = Math.round(cur * LAST)
+      if (s !== lastStation) {
+        lastStation = s
+        setActive(s)
       }
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [enabled, reduced])
+  }, [reduced])
 
-  const active = enabled ? Math.min(LAST, storeStation) : fallbackStation
   const here = stations[active] ?? stations[0]
   const arrived = active >= LAST
 

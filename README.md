@@ -4,7 +4,7 @@ A stunning, animated portfolio website built with Next.js, featuring modern anim
 
 ## ✨ Features
 
-- **🎨 Dark/Light Theme Toggle** - Persisted across sessions
+- **🎨 One dark visual system** - No toggle, no persisted preference, no flash
 - **🎭 Smooth Animations** - GSAP + Framer Motion powered transitions
 - **📱 Responsive Design** - Optimized for all devices
 - **⚡ Smooth Scrolling** - Lenis-powered smooth scroll experience
@@ -75,7 +75,6 @@ rahul_portfolio/
 │   │   ├── testimonials-section.tsx
 │   │   └── contact-section.tsx
 │   └── ui/               # UI components
-│       ├── theme-provider.tsx
 │       └── smooth-scroll.tsx
 ├── lib/                  # Utility functions
 │   ├── store.ts          # Zustand store
@@ -86,22 +85,27 @@ rahul_portfolio/
 
 ## 🎨 Customization
 
-### Colors & Theme
+### Colors
 
-The color scheme can be customized in `tailwind.config.js`:
+The site is dark-only. Every colour is a CSS custom property defined once at
+`:root` in `app/globals.css`, as space-separated RGB channels so Tailwind's
+`/opacity` modifiers keep working:
 
-```javascript
-colors: {
-  primary: {
-    50: '#f0f9ff',
-    // ... other shades
-  },
-  dark: {
-    50: '#f8fafc',
-    // ... other shades
-  }
+```css
+:root {
+  --base: 14 15 19;        /* page */
+  --surface-1: 20 22 28;   /* raised panel */
+  --fg: 240 241 245;       /* type */
+  --violet: 149 108 255;   /* the accent family */
+  --cobalt: 74 137 255;
+  /* … */
 }
 ```
+
+Sections declare their hue with `data-accent="cobalt"`, which re-points
+`--accent` for everything inside them — rules, bullets, focus rings, glows and
+the atmospheric wash. The 3D world reads the same tokens, so the scene and the
+interface can never drift apart.
 
 ### Animations
 
@@ -128,8 +132,11 @@ Update the content in each section component:
 ### Smooth Scrolling
 Uses Lenis for buttery-smooth scrolling with configurable easing and speed.
 
-### Theme Management
-Zustand store manages theme state with localStorage persistence.
+### World Lifecycle
+A pre-paint inline script stamps `data-world` on `<html>`, which decides the
+hero's layout before the first paint. The 3D scene then reports `ready` only
+once it has rendered a real frame, and a CSS atmosphere sits behind it the whole
+time — so the hero is never blank, whether or not WebGL is available.
 
 ### GSAP Animations
 - ScrollTrigger for scroll-based animations

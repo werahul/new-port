@@ -26,13 +26,22 @@ export interface BuildCtx {
 const TMP = new THREE.Object3D()
 const scaled = (n: number, q: QualityProfile) => Math.max(3, Math.round(n * q.density))
 
+/**
+ * ACES tone mapping rolls off exactly the range additive blending lives in, so
+ * every line and particle came out of the new pipeline dimmer than it went into
+ * the old one. Since that luminous linework is the signature of this world, the
+ * gain goes back in at the source rather than by hand at thirty call sites.
+ */
+const ADDITIVE_GAIN = 1.28
+const gained = (opacity: number) => Math.min(1, opacity * ADDITIVE_GAIN)
+
 /** Additive line material — the workhorse for structure that should glow. */
 function lineMat(ctx: BuildCtx, color: THREE.Color, opacity: number) {
   return ctx.track(
     new THREE.LineBasicMaterial({
       color: color.clone(),
       transparent: true,
-      opacity,
+      opacity: gained(opacity),
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }),
@@ -45,7 +54,7 @@ function pointMat(ctx: BuildCtx, color: THREE.Color, size: number, opacity: numb
       color: color.clone(),
       size,
       transparent: true,
-      opacity,
+      opacity: gained(opacity),
       sizeAttenuation: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -61,6 +70,45 @@ function faceMat(ctx: BuildCtx, color: THREE.Color, opacity: number) {
       opacity,
       side: THREE.DoubleSide,
       depthWrite: false,
+    }),
+  )
+}
+
+/**
+ * Lit solid — for the elements that should read as *objects* rather than as
+ * diagram. These are what the scene's light rig actually acts on: the key
+ * catches their top faces, the rim separates their silhouette from the fog, the
+ * environment probe gives them a real specular roll-off, and the district's
+ * accent point light pushes its hue through the shadow side.
+ *
+ * `transparent` is always on, even at full opacity, because `applyPresence`
+ * fades every material by presence — an opaque material would simply refuse to
+ * fade and the district would pop in.
+ */
+function solidMat(
+  ctx: BuildCtx,
+  color: THREE.Color,
+  opacity: number,
+  {
+    metalness = 0.35,
+    roughness = 0.38,
+    emissive = 0.18,
+    // RoomEnvironment is a bright white interior. At high intensity it floods
+    // the accents toward grey, which is the opposite of the saturated linework
+    // this world is built on. Keep it low enough to read as specular only.
+    env = 0.3,
+  }: { metalness?: number; roughness?: number; emissive?: number; env?: number } = {},
+) {
+  return ctx.track(
+    new THREE.MeshStandardMaterial({
+      color: color.clone(),
+      metalness,
+      roughness,
+      emissive: color.clone(),
+      emissiveIntensity: emissive,
+      envMapIntensity: env,
+      transparent: true,
+      opacity,
     }),
   )
 }
@@ -98,8 +146,11 @@ function gateway(ctx: BuildCtx): District {
   const g = new THREE.Group()
   const { accent, fg, quality } = ctx
 
-  // receding arches — the sense of a threshold being passed through
-  const archGeo = ctx.track(new THREE.TorusGeometry(9, 0.06, 6, 64))
+  // receding arches — the sense of a threshold being passed through. This is
+  // the first geometry anyone sees, so it carries the extra segments.
+  const archGeo = ctx.track(
+    new THREE.TorusGeometry(9, 0.07, quality.tier === 'low' ? 6 : 8, quality.tier === 'low' ? 64 : 96),
+  )
   const archMat = lineMat(ctx, accent, 0.5)
   const archMesh = new THREE.InstancedMesh(archGeo, archMat, 7)
   for (let i = 0; i < 7; i++) {
@@ -215,7 +266,11 @@ function surfaces(ctx: BuildCtx): District {
   // component blocks — the small parts a layout is assembled from
   const barGeo = ctx.track(new THREE.BoxGeometry(2.6, 0.16, 0.16))
   const barCount = scaled(30, quality)
-  const bars = new THREE.InstancedMesh(barGeo, faceMat(ctx, fg, 0.3), barCount)
+  const bars = new THREE.InstancedMesh(
+    barGeo,
+    solidMat(ctx, fg, 0.34, { metalness: 0.2, roughness: 0.55, emissive: 0.04 }),
+    barCount,
+  )
   for (let i = 0; i < barCount; i++) {
     TMP.position.set(
       ((i * 13) % 30) - 15,
@@ -271,6 +326,10 @@ function pipelines(ctx: BuildCtx): District {
     )
   }
 
+  // Wireframe, as before. Solid faceted shading was the "premium materials"
+  // instinct, but at district scale under fog it turns a precise diagram into a
+  // soft blob — and it costs a lit shader per fragment. Crisp additive lines are
+  // both the cheaper and the better-looking answer here.
   const nodeGeo = ctx.track(new THREE.OctahedronGeometry(0.62, 0))
   const nodeMesh = new THREE.InstancedMesh(
     nodeGeo,
@@ -279,7 +338,7 @@ function pipelines(ctx: BuildCtx): District {
         color: accent.clone(),
         wireframe: true,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.8,
       }),
     ),
     nodeCount,
@@ -312,7 +371,15 @@ function pipelines(ctx: BuildCtx): District {
   // packets in flight
   const pkCount = scaled(34, quality)
   const pkGeo = ctx.track(new THREE.BoxGeometry(0.2, 0.2, 0.5))
-  const packets = new THREE.InstancedMesh(pkGeo, faceMat(ctx, accent, 0.95), pkCount)
+  const packets = new THREE.InstancedMesh(
+    pkGeo,
+    solidMat(ctx, accent, 0.95, {
+      metalness: 0.2,
+      roughness: 0.3,
+      emissive: 0.75,
+    }),
+    pkCount,
+  )
   const pk = Array.from({ length: pkCount }, (_, i) => ({
     route: routes[i % routes.length],
     t: Math.random(),
@@ -486,7 +553,7 @@ function lattice(ctx: BuildCtx): District {
   const pathLine = new THREE.Line(pathGeo, lineMat(ctx, accent, 0.55))
   g.add(pathLine)
 
-  const agentGeo = ctx.track(new THREE.IcosahedronGeometry(0.4, 0))
+  const agentGeo = ctx.track(new THREE.IcosahedronGeometry(0.42, 0))
   const agent = new THREE.Mesh(
     agentGeo,
     ctx.track(
@@ -554,7 +621,7 @@ function regions(ctx: BuildCtx): District {
         color: accent.clone(),
         wireframe: true,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.75,
       }),
     ),
     regionCount * perRegion,
@@ -611,8 +678,20 @@ function monoliths(ctx: BuildCtx): District {
   const { accent, fg } = ctx
   const count = 5
 
+  // The one district that is unambiguously *objects* — five standing builds.
+  // Polished and near-metal, so the rim light draws a clean edge down each
+  // silhouette and the environment probe puts a soft sheen on the faces.
   const slabGeo = ctx.track(new THREE.BoxGeometry(3.4, 15, 0.5))
-  const slabs = new THREE.InstancedMesh(slabGeo, faceMat(ctx, fg, 0.055), count)
+  const slabs = new THREE.InstancedMesh(
+    slabGeo,
+    solidMat(ctx, fg, 0.22, {
+      metalness: 0.75,
+      roughness: 0.28,
+      emissive: 0.02,
+      env: 1.1,
+    }),
+    count,
+  )
   const edgeGeo = ctx.track(new THREE.EdgesGeometry(slabGeo))
   const edges = new THREE.InstancedMesh(edgeGeo, lineMat(ctx, accent, 0.55), count)
   for (let i = 0; i < count; i++) {
@@ -648,8 +727,16 @@ function ascent(ctx: BuildCtx): District {
   const { accent, fg, quality } = ctx
 
   const steps = scaled(26, quality)
-  const rungGeo = ctx.track(new THREE.BoxGeometry(7, 0.09, 0.09))
-  const rungs = new THREE.InstancedMesh(rungGeo, faceMat(ctx, accent, 0.55), steps)
+  const rungGeo = ctx.track(new THREE.BoxGeometry(7, 0.1, 0.1))
+  const rungs = new THREE.InstancedMesh(
+    rungGeo,
+    solidMat(ctx, accent, 0.62, {
+      metalness: 0.3,
+      roughness: 0.35,
+      emissive: 0.45,
+    }),
+    steps,
+  )
   const railL: number[] = []
   const railR: number[] = []
   for (let i = 0; i < steps; i++) {
@@ -692,7 +779,9 @@ function convergence(ctx: BuildCtx): District {
   const g = new THREE.Group()
   const { accent, quality } = ctx
 
-  const ringGeo = ctx.track(new THREE.TorusGeometry(4, 0.045, 6, 56))
+  const ringGeo = ctx.track(
+    new THREE.TorusGeometry(4, 0.05, quality.tier === 'low' ? 6 : 8, quality.tier === 'low' ? 56 : 80),
+  )
   const rings = new THREE.InstancedMesh(ringGeo, lineMat(ctx, accent, 0.6), 5)
   g.add(rings)
 

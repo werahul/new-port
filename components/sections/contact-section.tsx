@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useState } from 'react'
-import { Send, CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react'
+import { Send, Mail, CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react'
 import {
   MagneticButton,
   Section,
@@ -12,7 +12,23 @@ import { contactChannels, profile, socials } from '@/content/profile'
 
 type Status = 'idle' | 'success' | 'error' | 'mailto'
 
-const ENDPOINT = process.env.NEXT_PUBLIC_CONTACT_ENDPOINT
+/**
+ * Web3Forms posts straight from the browser and authenticates with an access
+ * key rather than a secret, which is why the key is `NEXT_PUBLIC_`. It is not a
+ * credential in the usual sense — it identifies the destination inbox, and the
+ * worst it can be used for is submitting to that same inbox. Web3Forms applies
+ * its own spam filtering on top of the honeypot below.
+ */
+const WEB3FORMS_URL = 'https://api.web3forms.com/submit'
+const WEB3FORMS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_KEY
+
+/**
+ * An explicit endpoint still wins, so swapping to Formspree/Basin/an API route
+ * of your own stays a one-variable change and needs no code edit here.
+ */
+const ENDPOINT =
+  process.env.NEXT_PUBLIC_CONTACT_ENDPOINT || (WEB3FORMS_KEY ? WEB3FORMS_URL : undefined)
+const IS_WEB3FORMS = !!WEB3FORMS_KEY && ENDPOINT === WEB3FORMS_URL
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -33,10 +49,11 @@ export function ContactSection() {
   }
 
   /**
-   * Posts to a form backend when NEXT_PUBLIC_CONTACT_ENDPOINT is configured
-   * (Formspree / Basin / Getform / a route of your own all accept this shape).
-   * With no endpoint set we hand off to the user's mail client instead of
-   * pretending to deliver — the form never silently swallows a message.
+   * Posts to Web3Forms when NEXT_PUBLIC_WEB3FORMS_KEY is set, or to whatever
+   * NEXT_PUBLIC_CONTACT_ENDPOINT names (Formspree / Basin / Getform / a route
+   * of your own all accept this shape). With neither configured we hand off to
+   * the visitor's mail client and say so plainly — the form never silently
+   * swallows a message, and never claims to have sent one it did not.
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,11 +63,16 @@ export function ContactSection() {
     setSubmitStatus('idle')
 
     if (!ENDPOINT) {
+      // No spinner and no "Sending…" here. Nothing is being sent — the message
+      // is being handed to the visitor's mail client, and they still have to
+      // press send in it. Showing a success tick for this (which is what this
+      // branch used to do) tells them their message is on its way when it is
+      // sitting in a draft.
       const body = `${formData.message}
 
 — ${formData.name} (${formData.email})`
       window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent(
-        formData.subject,
+        formData.subject || 'Portfolio enquiry',
       )}&body=${encodeURIComponent(body)}`
       setIsSubmitting(false)
       setSubmitStatus('mailto')
@@ -58,15 +80,46 @@ export function ContactSection() {
     }
 
     try {
+      const payload: Record<string, string> = { ...formData }
+      if (IS_WEB3FORMS) {
+        payload.access_key = WEB3FORMS_KEY as string
+        // What the notification email shows as sender and subject. Without
+        // these every message arrives titled "New Submission".
+        payload.from_name = formData.name || 'Portfolio contact'
+        payload.subject =
+          formData.subject || `Portfolio enquiry from ${formData.name || 'a visitor'}`
+        // Web3Forms' own honeypot, alongside the one below. Empty = human.
+        payload.botcheck = ''
+      }
+
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+
+      // Web3Forms answers 200 with `{ success: false }` for a bad access key or
+      // a rejected submission, so status alone is not enough to trust.
+      const data: unknown = await res.json().catch(() => null)
+      const ok =
+        res.ok &&
+        (data === null ||
+          typeof data !== 'object' ||
+          (data as { success?: boolean }).success !== false)
+
+      if (!ok) {
+        const reason =
+          (data as { message?: string } | null)?.message ?? `HTTP ${res.status}`
+        throw new Error(`Contact form rejected: ${reason}`)
+      }
+
       setSubmitStatus('success')
       setFormData({ name: '', email: '', subject: '', message: '' })
-    } catch {
+    } catch (err) {
+      // The visitor gets prose and a working alternative; the console keeps the
+      // actual reason, which is the difference between a five-minute fix and an
+      // afternoon.
+      console.error(err)
       setSubmitStatus('error')
     } finally {
       setIsSubmitting(false)
@@ -85,7 +138,7 @@ export function ContactSection() {
         description="The fastest way to reach me is email — the form below goes to the same place."
       />
 
-      <div className="mt-16 grid gap-12 lg:mt-20 lg:grid-cols-12">
+      <div className="rhythm-lead grid gap-12 lg:grid-cols-12">
         <ScrollReveal variant="fade-up" className="lg:col-span-5">
           <div className="flex flex-col divide-y divide-border border-y border-line">
             {contactChannels.map((c) => {
@@ -232,16 +285,26 @@ export function ContactSection() {
             </div>
 
             <div className="mt-7 flex flex-wrap items-center gap-4">
+              {/* The label tells the truth about what the click will do. With no
+                  form backend configured this composes a draft; promising to
+                  "send" a message the site cannot send is the one thing a
+                  contact form must never do. It flips back automatically once
+                  NEXT_PUBLIC_CONTACT_ENDPOINT is set. */}
               <MagneticButton type="submit" variant="primary" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
                     Sending…
                   </>
-                ) : (
+                ) : ENDPOINT ? (
                   <>
                     <Send className="h-4 w-4" />
                     Send message
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4" />
+                    Compose email
                   </>
                 )}
               </MagneticButton>
@@ -262,8 +325,19 @@ export function ContactSection() {
                 )}
                 {submitStatus === 'mailto' && (
                   <span className="flex items-center gap-2 text-muted-foreground">
-                    <CheckCircle className="h-4 w-4" />
-                    Opening your mail app…
+                    <Mail className="h-4 w-4 shrink-0" />
+                    <span>
+                      Your mail app should now be open with this message ready —
+                      it is not sent until you send it there. If nothing opened,
+                      write to{' '}
+                      <a
+                        href={`mailto:${profile.email}`}
+                        className="text-foreground underline underline-offset-4 hover:text-accent-strong"
+                      >
+                        {profile.email}
+                      </a>
+                      .
+                    </span>
                   </span>
                 )}
                 {submitStatus === 'error' && (

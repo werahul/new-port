@@ -3,6 +3,7 @@
 import { createElement, type CSSProperties, type ElementType, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { useGsapScope } from '@/lib/animation/use-gsap-scope'
+import { queueRefresh } from '@/lib/animation/gsap'
 import { DUR, EASE, MQ, ST, STAGGER } from '@/lib/animation/config'
 
 type SplitUnit = 'lines' | 'words' | 'chars'
@@ -97,7 +98,11 @@ export function TextReveal({
                 ? undefined
                 : { trigger: scope, start: start ?? ST.revealStart, once: true },
           })
-          ScrollTrigger.refresh()
+          // Every SectionHeading, every CaseStudySection and the footer email
+          // renders one of these, and `document.fonts.ready` resolves for all of
+          // them at once — so a direct `refresh()` here meant a dozen full,
+          // synchronous re-measures of the whole page in a single frame.
+          queueRefresh(ScrollTrigger)
         }
 
         if (

@@ -2,8 +2,8 @@ import * as THREE from 'three'
 
 /**
  * The scene reads its colours from the same CSS custom properties the rest of
- * the site uses, so a theme switch re-lights the world instead of leaving the
- * 3D on a hard-coded palette.
+ * the site uses, so the world and the interface are lit from one palette and
+ * can never drift apart.
  */
 const VARS = [
   '--violet',
@@ -22,8 +22,6 @@ export interface Palette {
   base: THREE.Color
   /** foreground, for neutral structure lines */
   fg: THREE.Color
-  /** true when the light theme is active (dimmer additive glow) */
-  light: boolean
 }
 
 function read(name: string, fallback: string): THREE.Color {
@@ -47,20 +45,5 @@ export function readPalette(): Palette {
     accents,
     base: read('--base', '#0e0f13'),
     fg: read('--fg', '#f0f1f5'),
-    light:
-      typeof document !== 'undefined' &&
-      document.documentElement.classList.contains('light'),
   }
-}
-
-/** Re-read the tokens into an existing palette object, preserving identity. */
-export function refreshPalette(p: Palette) {
-  const next = readPalette()
-  for (const k of Object.keys(next.accents) as AccentKey[]) {
-    p.accents[k].copy(next.accents[k])
-  }
-  p.base.copy(next.base)
-  p.fg.copy(next.fg)
-  p.light = next.light
-  return p
 }

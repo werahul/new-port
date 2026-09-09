@@ -7,23 +7,48 @@ import { create } from 'zustand'
  */
 export const worldPath = { current: 0 }
 
+/**
+ * THE WORLD'S LIFECYCLE.
+ *
+ *   idle → probing → loading → ready
+ *                        ↓        ↓
+ *                     fallback ←──┘
+ *
+ * The important property is that `ready` is *reported by the scene* once it has
+ * rendered a real frame into a canvas with a real size — it is never predicted
+ * from "this device supports WebGL". The previous design flipped an `enabled`
+ * flag the moment capability detection passed, which is why a chunk that never
+ * arrived, or a `getContext` that failed once, left the visitor looking at six
+ * screens of empty scrim with no way out but a manual refresh.
+ *
+ * `fallback` is a state, not a latch. Anything that can fail can be retried,
+ * and a restored WebGL context returns the world to `ready`.
+ */
+export type WorldStatus = 'idle' | 'probing' | 'loading' | 'ready' | 'fallback'
+
 interface WorldState {
-  /** the 3D world is mounted and running */
-  enabled: boolean
-  /** nearest station index — changes a handful of times per page, so state is fine */
-  station: number
-  /** the establishing shot has finished and the identity can reveal */
-  entered: boolean
-  setEnabled: (v: boolean) => void
-  setStation: (v: number) => void
-  setEntered: (v: boolean) => void
+  status: WorldStatus
+  setStatus: (v: WorldStatus) => void
+  /**
+   * Client-side navigation does not re-evaluate this module, so a visitor
+   * returning from a case study would otherwise mount with the camera still
+   * parked at the end of the journey — and the hero fades its own headline out
+   * anywhere past the first station. Call on mount.
+   */
+  reset: () => void
 }
 
+/**
+ * Note what is *not* in here: the current station. Every consumer that needs it
+ * derives it from `worldPath` inside its own rAF instead. Publishing it from
+ * the canvas meant the value froze wherever the canvas did, and a frozen
+ * station is what left the hero invisible after a scene failure.
+ */
 export const useWorldStore = create<WorldState>((set) => ({
-  enabled: false,
-  station: 0,
-  entered: false,
-  setEnabled: (enabled) => set({ enabled }),
-  setStation: (station) => set({ station }),
-  setEntered: (entered) => set({ entered }),
+  status: 'idle',
+  setStatus: (status) => set({ status }),
+  reset: () => {
+    worldPath.current = 0
+    set({ status: 'idle' })
+  },
 }))

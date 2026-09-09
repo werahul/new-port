@@ -65,9 +65,18 @@ export function loadDrawSVG() {
 }
 
 let refreshFrame = 0
+
 /**
  * Coalesce the ScrollTrigger.refresh() calls that fire as many animation scopes
  * mount at once on load into a single refresh on the next frame.
+ *
+ * A full `refresh()` is synchronous and re-measures every trigger on the page,
+ * so the uncoalesced version — one per SectionHeading, per CaseStudySection, per
+ * TextReveal, plus the world's three — was the largest single stall on load.
+ *
+ * Returns a canceller. Callers that can be torn down before the frame arrives
+ * should use it: a refresh firing into a half-unmounted tree measures elements
+ * that are on their way out.
  */
 export function queueRefresh(ScrollTrigger: typeof ScrollTriggerType) {
   if (refreshFrame) cancelAnimationFrame(refreshFrame)
@@ -77,4 +86,10 @@ export function queueRefresh(ScrollTrigger: typeof ScrollTriggerType) {
       ScrollTrigger.refresh()
     })
   })
+  return () => {
+    if (refreshFrame) {
+      cancelAnimationFrame(refreshFrame)
+      refreshFrame = 0
+    }
+  }
 }

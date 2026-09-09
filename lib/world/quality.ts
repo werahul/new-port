@@ -1,9 +1,20 @@
-export type Tier = 'high' | 'medium' | 'low'
+import type { Tier, WorldCapability } from './capability-script'
+
+export type { Tier }
 
 export interface QualityProfile {
   tier: Tier
   /** device pixel ratio ceiling */
   dpr: number
+  /**
+   * The resolution the adaptive stepper may never go below.
+   *
+   * Sharpness is the single biggest contributor to how expensive this world
+   * looks, and it is the last thing that should be sacrificed. Shedding pixels
+   * to buy frames is a trade that makes the scene look cheap long before it
+   * makes it feel slow.
+   */
+  dprFloor: number
   antialias: boolean
   /** multiplier applied to every district's instance/particle budget */
   density: number
@@ -17,32 +28,44 @@ export interface QualityProfile {
   cameraSway: boolean
 }
 
+/**
+ * The budget is spent on RESOLUTION, not on object count.
+ *
+ * A district drawn at full device resolution with half the instances reads as
+ * precise and expensive. The same district at 1x with every instance present
+ * reads as a cheap render — the linework aliases, the fine grid crawls, and the
+ * particles turn to mush. So every tier now buys pixels first and geometry
+ * second, and antialiasing is on wherever the device can plausibly afford it.
+ */
 const PROFILES: Record<Tier, Omit<QualityProfile, 'tier'>> = {
   high: {
-    dpr: 1.75,
+    dpr: 2,
+    dprFloor: 1.5,
     antialias: true,
-    density: 1,
-    streamCount: 1400,
+    density: 0.6,
+    streamCount: 900,
     fogDensity: 0.0125,
     cullDistance: 120,
     cameraSway: true,
   },
   medium: {
-    dpr: 1.5,
-    antialias: false,
-    density: 0.55,
-    streamCount: 650,
+    dpr: 1.75,
+    dprFloor: 1.25,
+    antialias: true,
+    density: 0.42,
+    streamCount: 520,
     fogDensity: 0.016,
-    cullDistance: 90,
+    cullDistance: 95,
     cameraSway: true,
   },
   low: {
-    dpr: 1.25,
+    dpr: 1.5,
+    dprFloor: 1,
     antialias: false,
-    density: 0.3,
-    streamCount: 260,
+    density: 0.26,
+    streamCount: 240,
     fogDensity: 0.021,
-    cullDistance: 70,
+    cullDistance: 75,
     cameraSway: false,
   },
 }
@@ -51,49 +74,40 @@ export function profileFor(tier: Tier): QualityProfile {
   return { tier, ...PROFILES[tier] }
 }
 
-export interface Capability {
-  webgl: boolean
-  tier: Tier
-}
+const FALLBACK: WorldCapability = { webgl: false, tier: 'low', reduced: false }
 
 /**
- * Decide what this device should be asked to render, before anything is
- * imported. Errs downward: a phone that could have handled `medium` losing a
- * few particles costs nothing, a laptop dropping frames costs the whole
- * impression.
+ * What this device should be asked to render.
+ *
+ * The decision itself is made pre-paint by WORLD_CAPABILITY_SCRIPT, because the
+ * hero's layout depends on it and a post-paint answer means a visible jump. All
+ * this does is read the stamp. The re-probe below is a genuine fallback for the
+ * one case the script cannot cover — it was blocked, or threw before assigning
+ * — and it releases its context immediately, which the old implementation
+ * never did.
  */
-export function detectCapability(): Capability {
-  if (typeof window === 'undefined') return { webgl: false, tier: 'low' }
+export function detectCapability(): WorldCapability {
+  if (typeof window === 'undefined') return FALLBACK
+  if (window.__worldCap) return window.__worldCap
 
   let webgl = false
-  let renderer = ''
   try {
     const c = document.createElement('canvas')
     const gl = (c.getContext('webgl2') ||
       c.getContext('webgl')) as WebGLRenderingContext | null
     webgl = !!gl
-    if (gl) {
-      const dbg = gl.getExtension('WEBGL_debug_renderer_info')
-      if (dbg) renderer = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '')
-    }
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
   } catch {
     webgl = false
   }
-  if (!webgl) return { webgl: false, tier: 'low' }
 
-  const cores = navigator.hardwareConcurrency || 4
-  const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory
-  const coarse = window.matchMedia('(pointer: coarse)').matches
-  const w = window.innerWidth
-  const software = /swiftshader|llvmpipe|software/i.test(renderer)
-
-  if (software || cores <= 2 || (mem !== undefined && mem <= 2)) {
-    return { webgl: true, tier: 'low' }
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const cap: WorldCapability = {
+    webgl,
+    reduced,
+    // No renderer string to go on here, so take the conservative tier.
+    tier: webgl && window.innerWidth >= 1280 ? 'medium' : 'low',
   }
-  // Phones and small tablets get the simplified world, never a shrunk desktop one.
-  if (coarse || w < 900) return { webgl: true, tier: 'low' }
-  if (w < 1280 || cores <= 4 || (mem !== undefined && mem <= 4)) {
-    return { webgl: true, tier: 'medium' }
-  }
-  return { webgl: true, tier: 'high' }
+  window.__worldCap = cap
+  return cap
 }

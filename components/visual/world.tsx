@@ -1,14 +1,58 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { stations, stationCount } from '@/content/world'
 import { detectCapability, type Tier } from '@/lib/world/quality'
+import type { WorldCapability } from '@/lib/world/capability-script'
 import { worldPath, useWorldStore } from '@/lib/world/store'
-import { loadGsap } from '@/lib/animation/gsap'
-import { prefersReducedMotion } from '@/lib/animation/reduced-motion'
+import { loadGsap, queueRefresh } from '@/lib/animation/gsap'
+import { WorldAtmosphere } from './world-atmosphere'
+import { cn } from '@/lib/utils'
 
-const WorldCanvas = dynamic(() => import('./world-canvas'), { ssr: false })
+export interface WorldCanvasProps {
+  tier: Tier
+  /** the scene rendered a real frame into a real-sized canvas */
+  onReady: () => void
+  /** the scene could not start — the host should stop waiting for it */
+  onFailure: () => void
+}
+
+/**
+ * Stands in for the canvas when its chunk could not be fetched. It reports the
+ * failure rather than throwing, so a flaky network degrades to the atmospheric
+ * hero instead of tripping the route's error boundary.
+ */
+function CanvasUnavailable({ onFailure }: WorldCanvasProps) {
+  useEffect(() => {
+    onFailure()
+  }, [onFailure])
+  return null
+}
+
+const CHUNK_RETRY_MS = 400
+
+/**
+ * A chunk that fails to arrive is the single most common reason the hero never
+ * appeared on a first visit: the old loader had no `.catch`, no retry, and an
+ * implicit Suspense fallback of `null`, so a transient network failure or a
+ * hash rotated by a mid-session deploy produced six screens of empty scrim.
+ */
+const WorldCanvas = dynamic<WorldCanvasProps>(
+  async () => {
+    try {
+      return (await import('./world-canvas')).default
+    } catch {
+      await new Promise((r) => setTimeout(r, CHUNK_RETRY_MS))
+      try {
+        return (await import('./world-canvas')).default
+      } catch {
+        return CanvasUnavailable
+      }
+    }
+  },
+  { ssr: false, loading: () => null },
+)
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smoothstep = (t: number) => t * t * (3 - 2 * t)
@@ -22,11 +66,25 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t)
  *    across that element's own scrollable range;
  *  - progress between anchors is eased with smoothstep, so the camera settles
  *    at each location and accelerates through the space between them.
+ *
+ * Returns `null` when the document is not laid out enough to measure — see the
+ * degenerate-hero guard below.
  */
-function measureAnchors(): number[] {
+function measureAnchors(): number[] | null {
   const doc = document.documentElement
-  const maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight)
   const vh = window.innerHeight
+
+  // The six hero stations are spread across `Math.max(0, height - vh)`. If the
+  // hero has not reached its full height yet, that term is 0, all six collapse
+  // onto one anchor, and the monotonicity fixup below spreads them 0.0025
+  // apart — so ~200px of scroll drives the camera past station 6 and the hero
+  // fades its own headline out. Refuse the measurement and wait for a refresh.
+  if (doc.dataset.world === 'cinematic') {
+    const hero = document.getElementById('home')
+    if (!hero || hero.offsetHeight < vh * 1.5) return null
+  }
+
+  const maxScroll = Math.max(1, doc.scrollHeight - vh)
 
   // group stations by the element that pins them
   const groups: Record<string, number[]> = {}
@@ -75,100 +133,162 @@ function pathFor(progress: number, anchors: number[]): number {
   return (i + smoothstep(local)) / (n - 1)
 }
 
+/** How many times a failed scene start is worth retrying before giving up. */
+const MAX_ATTEMPTS = 1
+
 /**
  * The world is mounted once, at the layout level, behind every section — not
  * inside the hero. That is the whole point: one environment the page scrolls
  * through, rather than a 3D object parked in one section.
+ *
+ * Two layers live here. The CSS atmosphere is always present and always
+ * complete on its own. The canvas cross-fades over it only once the scene has
+ * confirmed a real frame. There is therefore no moment — before, during or
+ * after a failure — at which the page has nothing behind it.
  */
 export function World() {
-  const [tier, setTier] = useState<Tier | null>(null)
-  const [reduced, setReduced] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [cap, setCap] = useState<WorldCapability | null>(null)
+  const [attemptKey, setAttemptKey] = useState(0)
+  const attemptsRef = useRef(0)
+  const retryFrameRef = useRef(0)
   const anchorsRef = useRef<number[]>([])
-  const setEnabled = useWorldStore((s) => s.setEnabled)
-  const setEntered = useWorldStore((s) => s.setEntered)
 
-  // ---- decide whether this device gets the world at all -------------------
-  useEffect(() => {
-    const r = prefersReducedMotion()
-    setReduced(r)
-    if (r) {
-      // No travel, no establishing shot — the page is fully readable without it.
-      setEntered(true)
-      return
-    }
-    const cap = detectCapability()
-    if (!cap.webgl) {
-      setEntered(true)
-      return
-    }
-    setTier(cap.tier)
-  }, [setEntered])
+  const status = useWorldStore((s) => s.status)
+  const setStatus = useWorldStore((s) => s.setStatus)
+  const reset = useWorldStore((s) => s.reset)
 
+  // ---- probe, and clear anything a previous route left behind --------------
   useEffect(() => {
-    const on = !!tier && !failed && !reduced
-    setEnabled(on)
-    const root = document.documentElement
-    if (on) root.dataset.world = 'on'
-    else delete root.dataset.world
+    reset()
+    const c = detectCapability()
+    setCap(c)
+    setStatus(c.webgl && !c.reduced ? 'loading' : 'fallback')
     return () => {
-      delete root.dataset.world
+      cancelAnimationFrame(retryFrameRef.current)
     }
-  }, [tier, failed, reduced, setEnabled])
+  }, [reset, setStatus])
+
+  // ---- publish the lifecycle to CSS ---------------------------------------
+  useEffect(() => {
+    document.documentElement.setAttribute('data-world-status', status)
+  }, [status])
+
+  useEffect(
+    () => () => {
+      document.documentElement.removeAttribute('data-world-status')
+    },
+    [],
+  )
+
+  const onReady = useCallback(() => setStatus('ready'), [setStatus])
+
+  const onFailure = useCallback(() => {
+    if (attemptsRef.current >= MAX_ATTEMPTS) {
+      setStatus('fallback')
+      return
+    }
+    attemptsRef.current += 1
+    setStatus('loading')
+    // One frame of separation before remounting. A context released by
+    // `forceContextLoss` (Strict Mode's throwaway mount does exactly this) is
+    // not reclaimed synchronously, and asking for a new one in the same tick is
+    // precisely what makes the retry fail as well.
+    cancelAnimationFrame(retryFrameRef.current)
+    retryFrameRef.current = requestAnimationFrame(() =>
+      setAttemptKey(attemptsRef.current),
+    )
+  }, [setStatus])
 
   // ---- drive the camera from document scroll ------------------------------
+  const live = !!cap?.webgl && !cap.reduced
   useEffect(() => {
-    if (!tier || failed || reduced) return
+    if (!live) return
     let disposed = false
     let cleanup: (() => void) | null = null
 
-    loadGsap().then(({ ScrollTrigger }) => {
-      if (disposed) return
+    loadGsap()
+      .then(({ ScrollTrigger }) => {
+        if (disposed) return
 
-      const remeasure = () => {
-        anchorsRef.current = measureAnchors()
-      }
-      remeasure()
+        const remeasure = () => {
+          const next = measureAnchors()
+          if (next) anchorsRef.current = next
+        }
+        remeasure()
 
-      const st = ScrollTrigger.create({
-        trigger: document.documentElement,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: true,
-        invalidateOnRefresh: true,
-        onRefresh: remeasure,
-        onUpdate: (self) => {
-          worldPath.current = pathFor(self.progress, anchorsRef.current)
-        },
+        const st = ScrollTrigger.create({
+          trigger: document.documentElement,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+          invalidateOnRefresh: true,
+          onRefresh: remeasure,
+          onUpdate: (self) => {
+            if (!anchorsRef.current.length) return
+            worldPath.current = pathFor(self.progress, anchorsRef.current)
+          },
+        })
+
+        // Section heights settle after fonts and images land. `load` may have
+        // fired already by the time this chunk arrives — common, and the old
+        // listener-only version simply never ran in that case.
+        const refresh = () => {
+          if (!disposed) queueRefresh(ScrollTrigger)
+        }
+        if (document.readyState === 'complete') refresh()
+        else window.addEventListener('load', refresh, { once: true })
+        // Not cancellable, so it has to check `disposed` itself.
+        document.fonts?.ready.then(refresh).catch(() => {})
+
+        cleanup = () => {
+          window.removeEventListener('load', refresh)
+          st.kill()
+        }
       })
-
-      // section heights settle after fonts and images land
-      const onLoad = () => ScrollTrigger.refresh()
-      window.addEventListener('load', onLoad)
-      document.fonts?.ready.then(onLoad).catch(() => {})
-      const t = window.setTimeout(onLoad, 600)
-
-      cleanup = () => {
-        window.removeEventListener('load', onLoad)
-        clearTimeout(t)
-        st.kill()
-      }
-    })
+      .catch(() => {
+        // Without ScrollTrigger the camera can never move: the scene would
+        // render, frozen on station 01, for the whole descent. The static
+        // atmosphere is the honest outcome.
+        if (!disposed) setStatus('fallback')
+      })
 
     return () => {
       disposed = true
       cleanup?.()
     }
-  }, [tier, failed, reduced])
+  }, [live, setStatus])
 
-  if (!tier || failed || reduced) return null
+  const showCanvas = live && status !== 'fallback'
 
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 h-[100svh] w-full"
+      className="pointer-events-none fixed inset-0 -z-10 h-[100svh] w-full overflow-hidden"
     >
-      <WorldCanvas tier={tier} reduced={reduced} onFailure={() => setFailed(true)} />
+      {/* Always present, always complete on its own. Dimmed rather than removed
+          once the world is up, so it keeps supplying depth behind the fog. */}
+      <WorldAtmosphere
+        className={cn(
+          'transition-opacity duration-1000 ease-editorial',
+          status === 'ready' ? 'opacity-[0.55]' : 'opacity-100',
+        )}
+      />
+
+      {showCanvas && cap && (
+        <div
+          className={cn(
+            'absolute inset-0 transition-opacity duration-700 ease-editorial',
+            status === 'ready' ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          <WorldCanvas
+            key={attemptKey}
+            tier={cap.tier}
+            onReady={onReady}
+            onFailure={onFailure}
+          />
+        </div>
+      )}
     </div>
   )
 }

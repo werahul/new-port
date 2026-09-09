@@ -7,8 +7,12 @@ export const profile = {
   location: 'Noida, India',
   email: 'rahuldev.kb@gmail.com',
   phone: '+91 8077464884',
-  resumeUrl:
-    'https://drive.google.com/file/d/1mN0sqLF4eYY3gXfaaZpF_dUspVTstk9p/view?usp=sharing',
+  /**
+   * Intentionally a local path, not the Drive URL. `/resume` redirects to the
+   * real file (see `RESUME_URL` in next.config.js), so the link on a CV or in
+   * an email signature keeps working when the file is re-uploaded.
+   */
+  resumeUrl: '/resume',
   /** Short editorial statement, split into masked lines for the hero. */
   heroLines: ['Full-stack engineer', 'building considered', 'digital products.'],
   summary:

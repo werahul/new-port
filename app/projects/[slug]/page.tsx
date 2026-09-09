@@ -188,7 +188,7 @@ export default function ProjectCaseStudyPage({
           </ScrollReveal>
         </Container>
 
-        <Container className="mt-12 lg:mt-16">
+        <Container className="rhythm-lead">
           <Parallax
             travel={64}
             className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-line bg-surface-2 sm:aspect-[16/9]"
@@ -207,7 +207,7 @@ export default function ProjectCaseStudyPage({
       </header>
 
       {/* ---- body --------------------------------------------------- */}
-      <Container className="mt-16 lg:mt-28">
+      <Container className="rhythm-block">
         <div className="grid gap-10 lg:grid-cols-[190px_1fr] lg:gap-16">
           <CaseStudyNav sections={sections} />
 
@@ -493,7 +493,7 @@ export default function ProjectCaseStudyPage({
       </Container>
 
       {/* ---- prev / next ------------------------------------------- */}
-      <Container className="mt-20 lg:mt-28">
+      <Container className="rhythm-block">
         <div className="grid gap-6 border-t border-line pt-10 sm:grid-cols-2">
           <TransitionLink
             href={`/projects/${prev.slug}`}

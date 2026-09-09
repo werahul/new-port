@@ -42,6 +42,17 @@ interface Options {
   drawSVG?: boolean
   /** don't run this render (e.g. a prop turned the animation off) */
   disabled?: boolean
+  /**
+   * How long to wait for the animation chunk before force-revealing anything
+   * hidden by `[data-anim-init]`.
+   *
+   * 4s is right for content below the fold, where the alternative to waiting is
+   * an element that visibly pops without its entrance. It is far too long for
+   * anything above the fold: a slow-but-working chunk leaves the visitor
+   * looking at a blank first screen, which is indistinguishable from a broken
+   * page. Above-the-fold scopes should pass something under a second.
+   */
+  failSafeMs?: number
 }
 
 /**
@@ -67,7 +78,12 @@ export function useGsapScope<T extends HTMLElement = HTMLDivElement>(
   const setupRef = useRef(setup)
   setupRef.current = setup
 
-  const { splitText = false, drawSVG = false, disabled = false } = options
+  const {
+    splitText = false,
+    drawSVG = false,
+    disabled = false,
+    failSafeMs = 4000,
+  } = options
 
   useEffect(() => {
     const el = ref.current
@@ -75,6 +91,7 @@ export function useGsapScope<T extends HTMLElement = HTMLDivElement>(
 
     let cancelled = false
     let ctx: { revert: () => void } | undefined
+    let cancelRefresh: (() => void) | undefined
     const cleanups: Array<() => void> = []
 
     const revealAll = () => {
@@ -85,7 +102,7 @@ export function useGsapScope<T extends HTMLElement = HTMLDivElement>(
     }
     const failSafe = window.setTimeout(() => {
       if (!cancelled && !ctx) revealAll()
-    }, 4000)
+    }, failSafeMs)
 
     const loader = drawSVG
       ? loadDrawSVG()
@@ -110,7 +127,7 @@ export function useGsapScope<T extends HTMLElement = HTMLDivElement>(
             onCleanup: (fn) => cleanups.push(fn),
           })
         }, ref)
-        queueRefresh(ScrollTrigger)
+        cancelRefresh = queueRefresh(ScrollTrigger)
       })
       .catch(() => {
         window.clearTimeout(failSafe)
@@ -120,6 +137,7 @@ export function useGsapScope<T extends HTMLElement = HTMLDivElement>(
     return () => {
       cancelled = true
       window.clearTimeout(failSafe)
+      cancelRefresh?.()
       cleanups.forEach((fn) => {
         try {
           fn()
