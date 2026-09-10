@@ -16,11 +16,14 @@ type ScrollTriggerInstance = InstanceType<typeof ScrollTriggerType>
 const JUMP_RELEASE_MS = 1400
 
 /**
- * Below this the stage is not comfortably shorter than the viewport, and a pin
- * would hold a panel on screen with its lower half cut off and no way to reach
- * it — the scroll that would normally get you there is busy driving the pin.
+ * Breathing room, in px, required above *and* below the stage before it may pin.
+ *
+ * A pin holds the stage still, so anything hanging past the fold can never be
+ * scrolled to — the scroll that would normally get you there is busy driving
+ * the sequence. The stage therefore has to be comfortably shorter than the
+ * viewport, and this is what "comfortably" is worth.
  */
-const DEFAULT_MIN_HEIGHT = '(min-height: 680px)'
+const FIT_MARGIN = 24
 
 interface PinnedSequenceOptions {
   /** how many steps the pinned range is divided into */
@@ -29,7 +32,12 @@ interface PinnedSequenceOptions {
   onIndex: (index: number) => void
   /** scroll each step owns, as a share of the viewport height */
   scrollPerStep?: number
-  /** minimum viewport height to pin at all */
+  /**
+   * An *extra* hard floor on viewport height, as a media query. Off by default:
+   * whether the stage fits is measured, which is strictly better than any
+   * number guessed here. Reach for this only to hold a pin back for some
+   * reason other than fit.
+   */
   minHeight?: string
   /** viewport the pin is allowed in (default: desktop) */
   viewport?: string
@@ -67,7 +75,7 @@ export function usePinnedSequence<T extends HTMLElement = HTMLDivElement>({
   count,
   onIndex,
   scrollPerStep = 0.55,
-  minHeight = DEFAULT_MIN_HEIGHT,
+  minHeight,
   viewport = MQ.desktop,
 }: PinnedSequenceOptions): PinnedSequence<T> {
   const [pinned, setPinned] = useState(false)
@@ -85,11 +93,31 @@ export function usePinnedSequence<T extends HTMLElement = HTMLDivElement>({
 
   const ref = useGsapScope<T>(
     ({ ScrollTrigger, scope, mm }) => {
+      const conditions: Record<string, string> = { reduce: MQ.reduce, viewport }
+      if (minHeight) conditions.tall = minHeight
+
       mm.add(
-        { reduce: MQ.reduce, viewport, tall: minHeight },
+        conditions,
         (c) => {
           const cond = c.conditions ?? {}
-          if (cond.reduce || !cond.viewport || !cond.tall) return
+          if (cond.reduce || !cond.viewport) return
+          if (minHeight && !cond.tall) return
+
+          /**
+           * Does the stage fit on screen with room to spare?
+           *
+           * Measured, never guessed. This used to be a fixed
+           * `(min-height: 680px)` media query, and a fixed number is wrong in
+           * both directions: it withheld the pin from laptops whose stage fits
+           * easily — a 1440x900 screen browses at roughly 647px of viewport
+           * once the browser's own chrome is taken out, comfortably under that
+           * floor while the stage itself is only ~520px — and it would equally
+           * have waved through a viewport that cleared 680px carrying a stage
+           * taller than that. The element's own height is the only honest
+           * input.
+           */
+          const fits = () =>
+            scope.offsetHeight + FIT_MARGIN * 2 <= window.innerHeight
 
           const trigger = ScrollTrigger.create({
             trigger: scope,
@@ -127,10 +155,39 @@ export function usePinnedSequence<T extends HTMLElement = HTMLDivElement>({
               onIndexRef.current(i)
             },
           })
-          triggerRef.current = trigger
-          setPinned(true)
+          let live = fits()
+          triggerRef.current = live ? trigger : null
+          if (!live) trigger.disable(true)
+          setPinned(live)
+
+          /**
+           * `fits()` is not settled for the life of the page: a resize, a
+           * browser zoom, a late-loading font and a longer panel all move the
+           * answer. Every one of those already ends in a ScrollTrigger
+           * refresh, so that is where it gets re-checked.
+           *
+           * Deferred a frame because `enable()` itself refreshes — toggling
+           * straight from inside the refresh that called us would re-enter it.
+           */
+          let frame = 0
+          const syncFit = () => {
+            if (frame) return
+            frame = requestAnimationFrame(() => {
+              frame = 0
+              const ok = fits()
+              if (ok === live) return
+              live = ok
+              if (ok) trigger.enable()
+              else trigger.disable(true)
+              triggerRef.current = ok ? trigger : null
+              setPinned(ok)
+            })
+          }
+          ScrollTrigger.addEventListener('refresh', syncFit)
 
           return () => {
+            if (frame) cancelAnimationFrame(frame)
+            ScrollTrigger.removeEventListener('refresh', syncFit)
             triggerRef.current = null
             setPinned(false)
             trigger.kill()
