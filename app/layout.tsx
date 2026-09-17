@@ -15,6 +15,7 @@ import {
   siteTitle,
   siteUrl,
 } from '@/lib/site'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -135,6 +136,7 @@ export default function RootLayout({
         </SmoothScroll>
 
         <Grain />
+        <Analytics />
       </body>
     </html>
   )
