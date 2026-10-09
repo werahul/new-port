@@ -24,6 +24,16 @@ export const profile = {
   ],
 } as const
 
+/** Hero copy. */
+export const heroCopy = {
+  kicker: 'Full-Stack Engineer',
+  /** cycled in the hero's "I build ___" line */
+  builds: ['Next.js apps', 'REST APIs', 'AI products', 'Micro-frontends', 'Design systems'],
+  positioning: ['MERN', 'Next.js', 'AI', 'Product engineering'],
+  statement:
+    'I build complete products — interface to infrastructure — and the systems that keep them fast, secure and coherent as they scale.',
+}
+
 export interface SocialLink {
   label: string
   href: string

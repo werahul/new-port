@@ -2,11 +2,8 @@
 
 import React, { useRef, useState } from 'react'
 import { Send, Mail, CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react'
-import {
-  MagneticButton,
-  Section,
-  SectionHeading,
-} from '@/components/primitives'
+import { Button, Reveal, Section, SectionHeading } from '@/components/primitives'
+import { SceneHost } from '@/components/three/scene-host'
 import { contactChannels, profile, socials } from '@/content/profile'
 
 type Status = 'idle' | 'success' | 'error' | 'mailto'
@@ -125,230 +122,219 @@ export function ContactSection() {
     }
   }
 
-  const fieldClass =
-    'w-full rounded-lg border border-line bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 focus:border-foreground/30 focus:outline-none'
-
   return (
-    <Section id="contact" accent="violet" spacing="loose" atmosphere>
+    <Section id="contact" tone="accent" accent="yellow">
       <SectionHeading
         index="06"
         label="Contact"
-        title="Let's build something considered"
-        description="The fastest way to reach me is email — the form below goes to the same place."
+        accent="pink"
+        title="Let's build something"
+        description="Open to full-time roles and selective freelance work. Email is fastest — the form goes to the same inbox."
       />
 
-      <div className="rhythm-lead grid gap-12 lg:grid-cols-12">
-        <div data-seq className="lg:col-span-5">
-          <div className="flex flex-col divide-y divide-border border-y border-line">
-            {contactChannels.map((c) => {
+      <div className="mt-14 grid gap-12 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <ul className="space-y-4">
+            {contactChannels.map((c, i) => {
               const inner = (
                 <>
-                  <span className="type-metadata">{c.title}</span>
-                  <span className="mt-1 flex items-center gap-1.5 text-[0.975rem] text-foreground">
+                  <span className="label">{c.title}</span>
+                  <span className="mt-1 flex items-center gap-2 break-all text-lg font-bold sm:text-xl">
                     {c.value}
-                    {c.href && (
-                      <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    )}
+                    {c.href && <ArrowUpRight aria-hidden className="h-5 w-5 shrink-0" strokeWidth={3} />}
                   </span>
                 </>
               )
-              return c.href ? (
+              const tilt = ['-rotate-1', 'rotate-1', '-rotate-[0.5deg]'][i % 3]
+              return (
+                <li key={c.title} className={tilt}>
+                  {c.href ? (
+                    <a href={c.href} className="b-box b-lift flex flex-col p-4">
+                      {inner}
+                    </a>
+                  ) : (
+                    <div className="b-box flex flex-col p-4">{inner}</div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {socials.map((social) => {
+              const Icon = social.icon
+              return (
                 <a
-                  key={c.title}
-                  href={c.href}
-                  className="group flex flex-col py-5 transition-colors hover:text-foreground"
+                  key={social.label}
+                  href={social.href}
+                  target={social.href.startsWith('http') ? '_blank' : undefined}
+                  rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  aria-label={social.label}
+                  className="b-lift flex h-12 w-12 items-center justify-center border-3 border-ink bg-paper shadow-b-sm"
                 >
-                  {inner}
+                  <Icon className="h-5 w-5" strokeWidth={2.5} />
                 </a>
-              ) : (
-                <div key={c.title} className="flex flex-col py-5">
-                  {inner}
-                </div>
               )
             })}
           </div>
 
-          <div className="mt-10">
-            <span className="type-metadata">Elsewhere</span>
-            <div className="mt-4 flex gap-2.5">
-              {socials.map((social) => {
-                const Icon = social.icon
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target={social.href.startsWith('http') ? '_blank' : undefined}
-                    rel={
-                      social.href.startsWith('http')
-                        ? 'noopener noreferrer'
-                        : undefined
-                    }
-                    aria-label={social.label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-muted-foreground transition-colors duration-300 ease-editorial hover:border-foreground/30 hover:text-foreground"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                )
-              })}
-            </div>
-          </div>
+          <SceneHost scene="contact" className="mx-auto mt-6 aspect-square w-full max-w-[380px]" />
         </div>
 
-        <div data-seq className="lg:col-span-7">
-          <form
-            onSubmit={handleSubmit}
-            className="relative surface rounded-2xl p-6 sm:p-8"
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="type-metadata mb-2 block"
-                >
-                  Name
+        <Reveal className="lg:col-span-7" tilt={2}>
+          <form onSubmit={handleSubmit} className="b-box relative bg-paper" data-tone="light">
+            <div className="flex items-center justify-between border-b-3 border-ink bg-ink px-5 py-3 text-cream">
+              <span className="label">New message</span>
+              <span className="flex gap-1.5" aria-hidden>
+                <span className="h-3 w-3 border-2 border-cream bg-pink" />
+                <span className="h-3 w-3 border-2 border-cream bg-yellow" />
+                <span className="h-3 w-3 border-2 border-cream bg-emerald" />
+              </span>
+            </div>
+
+            <div className="p-5 sm:p-8">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="name" className="label mb-2 block">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    autoComplete="name"
+                    className="b-field"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="label mb-2 block">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    autoComplete="email"
+                    className="b-field"
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <label htmlFor="subject" className="label mb-2 block">
+                  Subject
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
                   onChange={handleInputChange}
                   required
-                  className={fieldClass}
-                  placeholder="Your name"
+                  className="b-field"
+                  placeholder="Project inquiry"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="type-metadata mb-2 block"
-                >
-                  Email
+
+              <div className="mt-5">
+                <label htmlFor="message" className="label mb-2 block">
+                  Message
                 </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
                   onChange={handleInputChange}
                   required
-                  className={fieldClass}
-                  placeholder="you@example.com"
+                  rows={6}
+                  className="b-field resize-none"
+                  placeholder="Tell me about what you're building…"
                 />
               </div>
-            </div>
 
-            <div className="mt-5">
-              <label htmlFor="subject" className="type-metadata mb-2 block">
-                Subject
-              </label>
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleInputChange}
-                required
-                className={fieldClass}
-                placeholder="Project inquiry"
-              />
-            </div>
+              {/* Honeypot — invisible to people, tempting to bots. */}
+              <div aria-hidden className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
+                <label htmlFor="company">Company</label>
+                <input
+                  ref={honeypotRef}
+                  id="company"
+                  name="company"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
 
-            <div className="mt-5">
-              <label htmlFor="message" className="type-metadata mb-2 block">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                required
-                rows={5}
-                className={`${fieldClass} resize-none`}
-                placeholder="Tell me about what you're building…"
-              />
-            </div>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                {/* The label tells the truth about what the click will do. With no
+                    form backend configured this composes a draft; promising to
+                    "send" a message the site cannot send is the one thing a
+                    contact form must never do. */}
+                <Button type="submit" accent="pink" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin border-[3px] border-ink/30 border-t-ink" />
+                      Sending…
+                    </>
+                  ) : ENDPOINT ? (
+                    <>
+                      <Send aria-hidden className="h-4 w-4" strokeWidth={3} />
+                      Send message
+                    </>
+                  ) : (
+                    <>
+                      <Mail aria-hidden className="h-4 w-4" strokeWidth={3} />
+                      Compose email
+                    </>
+                  )}
+                </Button>
 
-            {/* Honeypot — invisible to people, tempting to bots. */}
-            <div aria-hidden className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
-              <label htmlFor="company">Company</label>
-              <input
-                ref={honeypotRef}
-                id="company"
-                name="company"
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className="mt-7 flex flex-wrap items-center gap-4">
-              {/* The label tells the truth about what the click will do. With no
-                  form backend configured this composes a draft; promising to
-                  "send" a message the site cannot send is the one thing a
-                  contact form must never do. It flips back automatically once
-                  NEXT_PUBLIC_CONTACT_ENDPOINT is set. */}
-              <MagneticButton type="submit" variant="primary" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
-                    Sending…
-                  </>
-                ) : ENDPOINT ? (
-                  <>
-                    <Send className="h-4 w-4" />
-                    Send message
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4" />
-                    Compose email
-                  </>
-                )}
-              </MagneticButton>
-
-              {/* One live region that stays mounted, so screen readers reliably
-                  announce the result instead of racing a newly-inserted node. */}
-              <p
-                role="status"
-                aria-live="polite"
-                data-shown={submitStatus !== 'idle'}
-                className="flex items-center gap-2 text-sm transition-opacity duration-300 data-[shown=false]:opacity-0"
-              >
-                {submitStatus === 'success' && (
-                  <span className="flex items-center gap-2 text-accent-strong">
-                    <CheckCircle className="h-4 w-4" />
-                    Message sent — I&apos;ll be in touch.
-                  </span>
-                )}
-                {submitStatus === 'mailto' && (
-                  <span className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-4 w-4 shrink-0" />
-                    <span>
-                      Your mail app should now be open with this message ready —
-                      it is not sent until you send it there. If nothing opened,
-                      write to{' '}
-                      <a
-                        href={`mailto:${profile.email}`}
-                        className="text-foreground underline underline-offset-4 hover:text-accent-strong"
-                      >
-                        {profile.email}
-                      </a>
-                      .
+                {/* One live region that stays mounted, so screen readers reliably
+                    announce the result instead of racing a newly-inserted node. */}
+                <p
+                  role="status"
+                  aria-live="polite"
+                  data-shown={submitStatus !== 'idle'}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium"
+                >
+                  {submitStatus === 'success' && (
+                    <span className="flex items-center gap-2 border-2 border-ink bg-emerald px-3 py-2">
+                      <CheckCircle aria-hidden className="h-4 w-4 shrink-0" />
+                      Message sent — I&apos;ll be in touch.
                     </span>
-                  </span>
-                )}
-                {submitStatus === 'error' && (
-                  <span className="flex items-center gap-2 text-destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    Couldn&apos;t send. Email {profile.email} directly.
-                  </span>
-                )}
-              </p>
+                  )}
+                  {submitStatus === 'mailto' && (
+                    <span className="flex items-start gap-2 border-2 border-ink bg-cyan px-3 py-2">
+                      <Mail aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        Your mail app should now be open with this message ready — it is not sent
+                        until you send it there. If nothing opened, write to{' '}
+                        <a href={`mailto:${profile.email}`} className="font-bold underline underline-offset-4">
+                          {profile.email}
+                        </a>
+                        .
+                      </span>
+                    </span>
+                  )}
+                  {submitStatus === 'error' && (
+                    <span className="flex items-center gap-2 border-2 border-ink bg-coral px-3 py-2">
+                      <AlertCircle aria-hidden className="h-4 w-4 shrink-0" />
+                      Couldn&apos;t send. Email {profile.email} directly.
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
           </form>
-        </div>
+        </Reveal>
       </div>
     </Section>
   )

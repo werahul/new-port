@@ -48,13 +48,10 @@ export function CaseStudyNav({ sections }: { sections: NavSection[] }) {
   }
 
   return (
-    <nav
-      aria-label="Case study sections"
-      className="min-w-0 lg:sticky lg:top-28 lg:self-start"
-    >
-      <div className="sticky top-[3.5rem] z-30 -mx-5 border-b border-line bg-background/85 px-5 py-2.5 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-        <div className="type-metadata mb-3 hidden lg:block">Contents</div>
-        <ul className="no-scrollbar flex gap-2 overflow-x-auto lg:flex-col lg:gap-0 lg:overflow-visible">
+    <nav aria-label="Case study sections" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+      <div className="sticky top-16 z-30 -mx-4 border-b-3 border-ink bg-bg px-4 py-2.5 sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
+        <div className="label mb-3 hidden lg:block">Contents</div>
+        <ul className="no-scrollbar flex gap-2 overflow-x-auto lg:flex-col lg:gap-1.5 lg:overflow-visible">
           {sections.map((s) => {
             const isActive = active === s.id
             return (
@@ -64,14 +61,13 @@ export function CaseStudyNav({ sections }: { sections: NavSection[] }) {
                   onClick={(e) => go(e, s.id)}
                   aria-current={isActive ? 'true' : undefined}
                   className={cn(
-                    'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors duration-300 ease-editorial',
-                    'lg:shrink lg:rounded-none lg:border-0 lg:border-l-2 lg:px-3.5 lg:py-2 lg:text-[0.82rem]',
+                    'flex shrink-0 items-center gap-2 whitespace-nowrap border-2 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-[background-color,transform] duration-150',
                     isActive
-                      ? 'border-foreground/25 bg-foreground/[0.04] text-foreground lg:border-l-accent-strong lg:bg-transparent'
-                      : 'border-line text-muted-foreground hover:text-foreground lg:border-l-border',
+                      ? 'border-ink bg-accent text-ink shadow-[3px_3px_0_0_rgb(var(--ink))] lg:translate-x-2'
+                      : 'border-transparent text-fg hover:border-edge',
                   )}
                 >
-                  <span className="type-metadata text-muted-foreground">{s.n}</span>
+                  <span className="opacity-60">{s.n}</span>
                   {s.label}
                 </a>
               </li>

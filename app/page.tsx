@@ -6,54 +6,45 @@ import { TimelineSection } from '@/components/sections/timeline-section'
 import { SecuritySection } from '@/components/sections/security-section'
 import { ContactSection } from '@/components/sections/contact-section'
 import { Footer } from '@/components/layout/footer'
-import { ChapterEdge } from '@/components/motion'
+import { MarqueeBand } from '@/components/primitives'
 
 /**
- * The page is scored, not stacked. Reading down:
+ * Light and dark sections alternate down the page; two tilted marquee bands
+ * cut across the boundaries where the page asks its two loud questions.
  *
- *   cinematic opening (the hero's six-station descent)
- *   → quiet introduction        About
- *   → interactive world         Skills
- *   → LOUD                      "What have I built?"
- *   → showcase                  Projects
- *   → quiet                     Experience
- *   → quiet                     Approach
- *   → LOUD                      "What can we build next?"
- *   → calm ending               Contact
- *
- * Only two of the five transitions are loud. Everything else is deliberately
- * under-played so those two land.
+ *   Hero (light) → About (dark) → Skills (light)
+ *   ── "What have I built?" ──
+ *   Work (dark) → Experience (light) → Approach (dark)
+ *   ── "What can we build next?" ──
+ *   Contact (yellow) → Footer (dark)
  */
 export default function Home() {
   return (
     <>
       <HeroSection />
       <AboutSection />
-      <ChapterEdge from="cobalt" to="cyan" />
       <SkillsSection />
 
-      <ChapterEdge
-        variant="loud"
-        from="cyan"
-        to="coral"
-        index="03"
-        question="What have I built?"
-        caption="Five builds — analytics, generative AI, fintech, marketing. Each one taken from interface through to backend."
+      <MarqueeBand
+        accent="pink"
+        tilt={2}
+        velocity={-80}
+        label="What have I built?"
+        between={['cream', 'night']}
+        items={['What have I built?', 'Selected work', 'Case studies']}
       />
       <ProjectsSection />
 
-      <ChapterEdge from="coral" to="emerald" />
       <TimelineSection />
-      <ChapterEdge from="emerald" to="cobalt" />
       <SecuritySection />
 
-      <ChapterEdge
-        variant="loud"
-        from="cobalt"
-        to="violet"
-        index="06"
-        question="What can we build next?"
-        caption="Open to full-time roles and selective freelance work."
+      <MarqueeBand
+        accent="emerald"
+        tilt={-2}
+        velocity={80}
+        label="What can we build next?"
+        between={['night', 'yellow']}
+        items={['What can we build next?', 'Open to work', 'Say hello']}
       />
       <ContactSection />
       <Footer />

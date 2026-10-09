@@ -1,267 +1,112 @@
-'use client'
-
-import { Fragment, useEffect, useRef } from 'react'
-import { Container, MagneticButton, SkillTag } from '@/components/primitives'
-import { HeroCaptions } from './hero-captions'
-import { scrollToId } from '@/components/ui/smooth-scroll'
-import { useGsapScope } from '@/lib/animation/use-gsap-scope'
-import { EASE, MQ } from '@/lib/animation/config'
-import { worldPath } from '@/lib/world/store'
-import { stations, stationCount } from '@/content/world'
-import { heroCopy } from '@/content/journey'
-import { profile } from '@/content/profile'
+import { ArrowDown } from 'lucide-react'
+import { Button, Container, MarqueeBand } from '@/components/primitives'
+import { RotatingText } from '@/components/reactbits/rotating-text'
+import { Shuffle } from '@/components/reactbits/shuffle'
+import { SceneHost } from '@/components/three/scene-host'
+import { heroCopy, profile } from '@/content/profile'
 
 /**
- * The hero is not a section with a 3D object in it — the world is mounted behind
- * the whole page. What lives here is the *entry*: a tall scroll range that gives
- * the camera room to travel the first six stations, and a GSAP-orchestrated
- * opening sequence that reveals the identity while the establishing shot settles,
- * then hands control to the scroll.
- *
- * Two things here are deliberately *not* React state:
- *
- *  - The shell's height and the frame's stickiness are CSS, keyed on the
- *    pre-paint `html[data-world]` stamp. They used to key off a store flag that
- *    arrived after the first paint, so every load jumped from one screen to six.
- *  - The active station is read from `worldPath` in a single rAF and written
- *    straight to the DOM. It used to come from the store, published by the
- *    canvas — which meant that if the canvas ever stopped, the value froze, and
- *    a hero that had scrolled past station 0 stayed at `opacity: 0` forever.
- *    `worldPath` is driven by ScrollTrigger and does not care whether the
- *    canvas is alive.
+ * Poster-scale opening. The name runs huge and off-axis on the left; the 3D
+ * shape cluster sits on a tilted "stage" card on the right and leans toward
+ * the cursor. A velocity marquee cuts across the bottom edge.
  */
 export function HeroSection() {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  // ---- opening sequence -------------------------------------------------
-  const heroRef = useGsapScope<HTMLDivElement>(
-    ({ gsap, scope, mm }) => {
-      // Drop the pre-paint attribute rather than pinning opacity inline — the
-      // wrapper still needs its `data-[receded]` class to fade it on scroll.
-      const reveal = () => scope.removeAttribute('data-anim-init')
-
-      mm.add({ reduce: MQ.reduce, ok: MQ.motionOk }, (c) => {
-        if (c.conditions?.reduce) {
-          reveal()
-          gsap.set(scope.querySelectorAll('.jr-word, .jr-item'), {
-            clearProps: 'all',
-          })
-          return
-        }
-
-        reveal()
-        const tl = gsap.timeline({
-          defaults: { ease: EASE.out },
-          delay: 0.15,
-        })
-
-        tl.from('.jr-kicker', { autoAlpha: 0, y: 14, duration: 0.5 }, 0)
-          .from(
-            '.jr-word',
-            {
-              yPercent: 118,
-              duration: 0.9,
-              ease: EASE.expo,
-              stagger: 0.08,
-            },
-            0.1,
-          )
-          .from('.jr-sub', { autoAlpha: 0, y: 18, duration: 0.6 }, 0.5)
-          .from(
-            '.jr-pos',
-            { autoAlpha: 0, duration: 0.4 },
-            0.6,
-          )
-          .from(
-            '.jr-pos > *',
-            { autoAlpha: 0, y: 12, duration: 0.45, stagger: 0.05 },
-            0.62,
-          )
-          .from('.jr-cta', { autoAlpha: 0, y: 14, duration: 0.5 }, 0.74)
-
-        // Let a visitor who is already scrolling skip straight to the end.
-        const skip = () => {
-          tl.progress(1)
-          teardown()
-        }
-        const teardown = () => {
-          window.removeEventListener('wheel', skip)
-          window.removeEventListener('keydown', skip)
-          window.removeEventListener('pointerdown', skip)
-          window.removeEventListener('touchstart', skip)
-        }
-        window.addEventListener('wheel', skip, { passive: true, once: true })
-        window.addEventListener('keydown', skip, { once: true })
-        window.addEventListener('pointerdown', skip, { once: true })
-        window.addEventListener('touchstart', skip, { passive: true, once: true })
-
-        return () => {
-          teardown()
-          tl.kill()
-        }
-      })
-    },
-    [],
-    // Above the fold: never leave the first screen blank for four seconds.
-    { failSafeMs: 900 },
-  )
-
-  // ---- follow the camera, without re-rendering ---------------------------
-  useEffect(() => {
-    if (document.documentElement.dataset.world !== 'cinematic') return
-    const section = sectionRef.current
-    const copy = heroRef.current
-    if (!section || !copy) return
-
-    let raf = 0
-    let lastIdx = -1
-    let lastReceded: string | null = null
-
-    const loop = () => {
-      raf = requestAnimationFrame(loop)
-      const f = worldPath.current * (stationCount - 1)
-
-      const idx = Math.max(0, Math.min(stations.length - 1, Math.round(f)))
-      if (idx !== lastIdx) {
-        lastIdx = idx
-        section.dataset.accent = stations[idx].accent
-      }
-
-      // A little past the first station, the identity has been read and the
-      // world takes the frame. The threshold is on the continuous value, not a
-      // rounded index, so it cannot be tripped by a half-measured anchor.
-      const receded = f > 0.55 ? 'true' : 'false'
-      if (receded !== lastReceded) {
-        lastReceded = receded
-        copy.dataset.receded = receded
-      }
-    }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [heroRef])
-
   return (
     <section
-      ref={sectionRef}
       id="home"
-      data-accent="violet"
-      // Phones get a shorter descent: the same six stations, but ~50vh of
-      // travel each instead of ~85vh. See the `.jr-hero-shell` rules.
-      className="jr-hero-shell relative transition-[--accent] duration-700"
+      data-tone="light"
+      className="relative isolate overflow-hidden bg-bg text-fg"
     >
-      <div className="jr-hero-frame relative flex h-[100svh] flex-col overflow-hidden">
-        <div
-          aria-hidden
-          className="jr-cinematic-only pointer-events-none absolute inset-0 -z-[1]"
-        >
-          <div className="hero-scrim absolute inset-0" />
-          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-background via-background/80 to-transparent" />
+      <div aria-hidden className="pattern-grid pointer-events-none absolute inset-0 -z-10" />
+      {/* loose geometry in the margins */}
+      <span aria-hidden className="clip-burst absolute -left-10 top-24 -z-10 hidden h-40 w-40 bg-yellow lg:block" />
+      <span aria-hidden className="absolute bottom-24 right-[46%] -z-10 hidden h-16 w-16 rotate-12 border-3 border-ink bg-pink lg:block" />
+
+      <Container size="wide" className="grid items-center gap-12 pb-24 pt-10 sm:pt-14 lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12 lg:gap-6 lg:pb-28">
+        <div className="relative z-10 lg:col-span-7">
+          <div className="flex flex-wrap items-center gap-3">
+            <span data-accent="emerald" className="sticker -rotate-3">
+              <span className="h-2 w-2 animate-pulse bg-ink" aria-hidden />
+              Open to work
+            </span>
+            <span data-accent="cyan" className="sticker rotate-2">
+              {profile.location}
+            </span>
+          </div>
+
+          <h1 className="mt-8">
+            <span className="sr-only">
+              {profile.fullName} — {heroCopy.kicker}
+            </span>
+            <span aria-hidden className="block">
+              <span className="label block">{heroCopy.kicker} · Portfolio ’26</span>
+              <Shuffle
+                text="Rahul"
+                className="h-display mt-3 block text-[clamp(3.5rem,15vw,9.5rem)]"
+              />
+              <span className="flex items-end gap-4 sm:ml-[14%]">
+                <Shuffle
+                  text="Kumar"
+                  className="h-display block text-[clamp(3.5rem,15vw,9.5rem)] [-webkit-text-stroke:3px_rgb(var(--ink))] text-transparent"
+                />
+                <span className="clip-star mb-3 hidden h-14 w-14 shrink-0 animate-spin-slow bg-pink sm:block" />
+              </span>
+            </span>
+          </h1>
+
+          <p className="h-title mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-2xl sm:text-4xl">
+            <span>I build</span>
+            <RotatingText
+              texts={heroCopy.builds}
+              boxClassName="border-3 border-ink bg-yellow px-3 py-1 shadow-b-sm"
+            />
+          </p>
+
+          <p className="b-box mt-8 max-w-xl -rotate-1 p-5 text-lg leading-relaxed sm:p-6">
+            {heroCopy.statement}
+          </p>
+
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Button href="/#works" accent="yellow">
+              See the work
+              <ArrowDown aria-hidden className="h-4 w-4" strokeWidth={3} />
+            </Button>
+            <Button href="/#contact" accent="pink">
+              Say hello
+            </Button>
+            <Button href={profile.resumeUrl} variant="ghost" withArrow>
+              Résumé
+            </Button>
+          </div>
         </div>
 
-        <Container className="relative flex flex-1 flex-col">
-          <div
-            ref={heroRef}
-            data-anim-init="hero"
-            data-receded="false"
-            className="jr-hero flex flex-1 flex-col justify-center transition-[opacity,transform] duration-700 ease-editorial data-[receded=true]:pointer-events-none data-[receded=true]:-translate-y-6 data-[receded=true]:opacity-0 motion-reduce:transition-none"
-          >
-            <div className="jr-item jr-kicker flex items-center gap-2.5 type-metadata">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+        {/* the stage */}
+        <div className="relative mx-auto w-full max-w-[560px] lg:col-span-5 lg:max-w-none">
+          <div className="b-box relative rotate-2 bg-paper shadow-b-xl">
+            <div className="flex items-center justify-between border-b-3 border-ink bg-ink px-3 py-2 text-cream">
+              <span className="label">fig. 01 — shapes of work</span>
+              <span className="flex gap-1.5" aria-hidden>
+                <span className="h-3 w-3 border-2 border-cream bg-pink" />
+                <span className="h-3 w-3 border-2 border-cream bg-yellow" />
+                <span className="h-3 w-3 border-2 border-cream bg-emerald" />
               </span>
-              {heroCopy.kicker}
             </div>
-
-            <h1 className="jr-title mt-7 type-display text-foreground">
-              {heroCopy.titleWords.map((word, i) => (
-                <Fragment key={word}>
-                  <span className="jr-mask inline-block overflow-hidden align-bottom">
-                    <span className="jr-word inline-block pb-[0.08em]">{word}</span>
-                  </span>
-                  {i < heroCopy.titleWords.length - 1 ? ' ' : null}
-                </Fragment>
-              ))}
-            </h1>
-
-            <p className="jr-item jr-sub mt-8 max-w-measure text-pretty text-[1.0625rem] leading-[1.65] text-muted-foreground">
-              {heroCopy.statement}
-            </p>
-
-            <div className="jr-item jr-pos mt-8 flex flex-wrap gap-1.5">
-              {heroCopy.positioning.map((p) => (
-                <SkillTag key={p} emphasis>
-                  {p}
-                </SkillTag>
-              ))}
-            </div>
-
-            <div className="jr-item jr-cta mt-10 flex flex-wrap items-center gap-4">
-              <MagneticButton
-                href="#works"
-                onClick={(e) => {
-                  e.preventDefault()
-                  scrollToId('works')
-                }}
-                variant="primary"
-                withArrow
-              >
-                View selected work
-              </MagneticButton>
-              <MagneticButton
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault()
-                  scrollToId('contact')
-                }}
-                variant="line"
-              >
-                Start a conversation
-              </MagneticButton>
-              <MagneticButton
-                href={profile.resumeUrl}
-                target="_blank"
-                variant="ghost"
-                withArrow
-              >
-                Résumé
-              </MagneticButton>
+            <div className="pattern-dots relative aspect-square w-full" data-tone="light">
+              <SceneHost scene="hero" className="absolute inset-0" />
             </div>
           </div>
-        </Container>
-
-        <HeroCaptions />
-      </div>
-
-      {/* No world (reduced motion, or a device with no WebGL at all): the same
-          journey, readable as an index. Hidden by CSS in cinematic mode, where
-          the captions narrate the stations as the camera reaches them. */}
-      <Container className="jr-flat-only relative z-10 pb-24">
-        <ol className="border-t border-line">
-          {stations.map((s) => (
-            <li
-              key={s.id}
-              data-accent={s.accent}
-              className="grid gap-3 border-b border-line py-7 sm:grid-cols-[7rem_1fr] sm:gap-8"
-            >
-              <div className="flex items-start gap-3">
-                <span className="type-metadata text-muted-foreground">{s.index}</span>
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
-              </div>
-              <div>
-                <div className="type-engineering text-foreground">{s.label}</div>
-                <div className="type-technology mt-2 text-muted-foreground">
-                  {s.stack}
-                </div>
-                <p className="mt-2.5 max-w-prose text-sm leading-relaxed text-muted-foreground">
-                  {s.note}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+          <span data-accent="violet" className="sticker absolute -bottom-4 -left-2 -rotate-6 sm:-left-6">
+            drag · click a shape
+          </span>
+        </div>
       </Container>
+
+      <MarqueeBand
+        className="!my-0"
+        accent="yellow"
+        tilt={-1.5}
+        items={[...heroCopy.positioning, 'Full-stack', 'Performance', 'Interfaces']}
+      />
     </section>
   )
 }

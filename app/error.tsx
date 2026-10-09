@@ -5,10 +5,8 @@ import { RotateCcw } from 'lucide-react'
 import { Container } from '@/components/primitives'
 
 /**
- * Route-level boundary. Before this existed there was none anywhere in `app/`,
- * so a single rejected dynamic import — the 3D chunk on a flaky connection, say
- * — escaped to Next's default error UI and took the whole page with it. The
- * world already degrades on its own; this catches everything that cannot.
+ * Route-level boundary: catches anything that escapes a section (a rejected
+ * chunk on a flaky connection, say) so it doesn't take the whole page with it.
  */
 export default function RouteError({
   error,
@@ -18,46 +16,34 @@ export default function RouteError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Keep the real error in the console — the visitor gets prose, the
-    // developer gets the stack.
+    // The visitor gets prose, the developer gets the stack.
     console.error(error)
   }, [error])
 
   return (
-    <main className="flex min-h-[100svh] items-center">
+    <div data-tone="light" className="pattern-grid flex min-h-[calc(100svh-4rem)] items-center bg-bg text-fg">
       <Container>
-        <div className="max-w-measure">
-          <p className="type-metadata type-metadata-accent">Error</p>
-          <h1 className="mt-6 type-display-sm text-foreground">
-            Something broke on the way in.
-          </h1>
-          <p className="mt-6 text-pretty leading-relaxed text-muted-foreground">
-            This one is on the site, not on you. Try again — and if it keeps
-            happening, the contact form on the home page still works.
+        <div className="b-box max-w-2xl -rotate-1 p-6 sm:p-10">
+          <span data-accent="coral" className="sticker rotate-2">
+            Error
+          </span>
+          <h1 className="h-display mt-6 text-5xl sm:text-7xl">Something broke.</h1>
+          <p className="mt-6 text-lg leading-relaxed text-muted">
+            This one is on the site, not on you. Try again — and if it keeps happening, the contact
+            form on the home page still works.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              onClick={reset}
-              className="btn-solid group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-medium tracking-tight transition-shadow duration-300 ease-editorial"
-            >
-              <RotateCcw className="h-4 w-4 transition-transform duration-500 ease-editorial group-hover:-rotate-90" />
+          <div className="mt-8 flex flex-wrap gap-4">
+            <button type="button" onClick={reset} data-accent="yellow" className="b-btn">
+              <RotateCcw aria-hidden className="h-4 w-4" strokeWidth={3} />
               Try again
             </button>
-            <a
-              href="/"
-              className="rounded-full border border-line-strong px-7 py-3.5 text-sm font-medium tracking-tight text-foreground transition-colors duration-300 ease-editorial hover:border-accent/60 hover:bg-accent/[0.07]"
-            >
+            <a href="/" className="b-btn b-btn-ghost">
               Back to the start
             </a>
           </div>
-          {error.digest && (
-            <p className="type-metadata mt-10 text-faint">
-              Reference {error.digest}
-            </p>
-          )}
+          {error.digest && <p className="label mt-8 text-muted">Reference {error.digest}</p>}
         </div>
       </Container>
-    </main>
+    </div>
   )
 }

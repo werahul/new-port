@@ -1,12 +1,11 @@
 import { cn } from '@/lib/utils'
 
-type ContainerSize = 'default' | 'narrow' | 'wide' | 'flush'
+type ContainerSize = 'default' | 'narrow' | 'wide'
 
 const sizeMap: Record<ContainerSize, string> = {
   default: 'max-w-content',
-  narrow: 'max-w-3xl',
-  wide: 'max-w-[1440px]',
-  flush: 'max-w-none',
+  narrow: 'max-w-4xl',
+  wide: 'max-w-[1600px]',
 }
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -14,10 +13,7 @@ interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   as?: keyof JSX.IntrinsicElements
 }
 
-/**
- * Consistent page gutter + max-width. Every section funnels its content
- * through this so horizontal rhythm is identical everywhere.
- */
+/** Page gutter + max width. 16px gutter on phones, wider from there. */
 export function Container({
   size = 'default',
   as: Tag = 'div',
@@ -28,11 +24,7 @@ export function Container({
   const Component = Tag as React.ElementType
   return (
     <Component
-      className={cn(
-        'mx-auto w-full px-5 sm:px-8 lg:px-12',
-        sizeMap[size],
-        className,
-      )}
+      className={cn('mx-auto w-full px-4 sm:px-8 lg:px-10', sizeMap[size], className)}
       {...props}
     >
       {children}
