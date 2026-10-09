@@ -29,7 +29,7 @@ export const experience: ExperienceEntry[] = [
     id: 'jasper-colin',
     index: '01',
     company: 'Jasper Colin',
-    role: 'Frontend Developer',
+    role: 'Next.js Developer',
     period: 'Oct 2025 — Present',
     location: 'Noida, India',
     context:
@@ -56,7 +56,7 @@ export const experience: ExperienceEntry[] = [
     id: 'melange-digital',
     index: '02',
     company: 'Melange Digital',
-    role: 'Frontend Web Developer',
+    role: 'Web Developer',
     period: 'Jan 2023 — Sep 2025',
     location: 'Goa — Remote',
     context:

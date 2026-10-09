@@ -103,7 +103,6 @@ export function Footer() {
           <span>
             © {currentYear} {profile.fullName}
           </span>
-          <span>Built with Next.js · GSAP · Three.js</span>
         </div>
       </Container>
 
