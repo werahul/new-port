@@ -4,6 +4,7 @@ import './globals.css'
 import './lab.css'
 import { Analytics } from '@vercel/analytics/next'
 import { SmoothScroll } from '@/components/ui/smooth-scroll'
+import { GoogleAnalytics } from '@/components/lab/google-analytics'
 import { LabNav } from '@/components/lab/nav'
 import { RevealObserver } from '@/components/lab/reveal-observer'
 import { SoundHost } from '@/components/lab/sound/sound-host'
@@ -135,6 +136,7 @@ export default function RootLayout({
         <RevealObserver />
         <SoundHost />
         <Analytics />
+        {isIndexable && <GoogleAnalytics />}
       </body>
     </html>
   )

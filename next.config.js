@@ -40,14 +40,20 @@ try {
   contactOrigin = ''
 }
 
+// Google Analytics 4 (components/lab/google-analytics.tsx): the gtag script
+// comes from googletagmanager.com; hits go to the regional *.google-analytics.com
+// and *.analytics.google.com collectors, with pixel fallbacks as images.
+const GA_ORIGINS =
+  ' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com'
+
 const csp = [
   "default-src 'self'",
   // next dev compiles with eval for HMR; production never needs it.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob:${GA_ORIGINS}`,
   "font-src 'self' data:",
-  `connect-src 'self'${contactOrigin}${isDev ? ' ws: http://localhost:*' : ''}`,
+  `connect-src 'self'${contactOrigin}${GA_ORIGINS}${isDev ? ' ws: http://localhost:*' : ''}`,
   "object-src 'none'",
   "base-uri 'self'",
   `form-action 'self'${contactOrigin}`,
