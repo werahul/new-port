@@ -84,6 +84,54 @@ export const about = {
   stats: profile.stats,
 }
 
+/**
+ * Direct answers to the questions people ask about a candidate — who, what,
+ * where's the proof, available?, résumé — set in the About card. Every clause
+ * restates a fact from the modules above; nothing new is claimed here.
+ */
+const currentRole = experience.find((e) => /present/i.test(e.period))
+const github = socials.find((s) => s.label === 'GitHub')
+const availability = 'Open to full-time roles and selective freelance work. Email is fastest.'
+
+export interface QuickAnswer {
+  q: string
+  a: string
+  link?: { label: string; href: string; external?: boolean }
+}
+
+export const quickAnswers: QuickAnswer[] = [
+  {
+    q: `Who is ${profile.fullName}?`,
+    a: `A ${profile.role.toLowerCase()} based in ${profile.location}${
+      currentRole ? `, currently ${currentRole.role} at ${currentRole.company}` : ''
+    }, with ${profile.stats[0].value} years shipping production software.`,
+  },
+  {
+    q: 'What does he specialise in?',
+    a: 'React, Next.js and TypeScript on the front end; Node.js, Express and MongoDB behind it. Within that: micro-frontend architecture and shared component libraries, motion and real-time 3D, and performance work that is measured.',
+  },
+  {
+    q: 'What has he built?',
+    a: `${featuredProjects.length} featured products with full case studies — a travel platform, a streetwear store, a micro-frontend CRM, a designer’s portfolio and a time tracker — and 15+ client projects delivered at Melange Digital.`,
+    link: { label: 'Selected work', href: '#work' },
+  },
+  {
+    q: 'Where is his code?',
+    a: 'Public repositories are on GitHub — the Task & Time Tracker’s source among them. Client work is shown through its case studies.',
+    link: github ? { label: 'github.com/werahul', href: github.href, external: true } : undefined,
+  },
+  {
+    q: 'Is he available?',
+    a: availability,
+    link: { label: profile.email, href: `mailto:${profile.email}` },
+  },
+  {
+    q: 'Where is the résumé?',
+    a: 'Always the current version, at one stable address.',
+    link: { label: 'Résumé', href: profile.resumeUrl, external: true },
+  },
+]
+
 /* ---- capabilities -------------------------------------------------------- */
 
 const levelOf = new Map<string, Proficiency>(
@@ -356,7 +404,7 @@ export const principles = [
 export const contact = {
   title: ["Let's build", "what's"] as const,
   accentWord: 'next.',
-  line: 'Open to full-time roles and selective freelance work. Email is fastest.',
+  line: availability,
   email: profile.email,
   phone: profile.phone,
   location: profile.location,

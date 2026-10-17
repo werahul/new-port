@@ -14,9 +14,9 @@
  *            environment map: what makes every glossy surface read as candy
  *            with real contrast rather than white-on-white
  */
-import { useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer } from '@react-three/drei'
-import { useEffect, useMemo, useRef } from 'react'
+import { createPortal, useFrame, useThree } from '@react-three/fiber'
+import { Lightformer } from '@react-three/drei'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { FLOOR_Y } from './keyframes'
 import { live } from './rig'
@@ -255,6 +255,46 @@ function Lights() {
   )
 }
 
+/**
+ * Render `children` into a cube map once and light the scene with it — what
+ * drei's <Environment> does when it is given children, without the HDR / EXR
+ * loaders it imports for its file and preset modes, which this scene never
+ * uses (~18 KB gzip off the 3D chunk).
+ */
+function BakedEnvironment({ resolution, children }: { resolution: number; children: React.ReactNode }) {
+  const gl = useThree((s) => s.gl)
+  const scene = useThree((s) => s.scene)
+  const [studio] = useState(() => new THREE.Scene())
+  const camera = useRef<THREE.CubeCamera>(null)
+  const target = useMemo(() => {
+    const t = new THREE.WebGLCubeRenderTarget(resolution)
+    t.texture.type = THREE.HalfFloatType
+    return t
+  }, [resolution])
+  useEffect(() => () => target.dispose(), [target])
+
+  useLayoutEffect(() => {
+    if (!camera.current) return
+    const autoClear = gl.autoClear
+    gl.autoClear = true
+    camera.current.update(gl, studio)
+    gl.autoClear = autoClear
+    const before = scene.environment
+    scene.environment = target.texture
+    return () => {
+      scene.environment = before
+    }
+  }, [gl, scene, studio, target])
+
+  return createPortal(
+    <>
+      {children}
+      <cubeCamera ref={camera} args={[0.1, 1000, target]} />
+    </>,
+    studio,
+  )
+}
+
 export function World({ lowTier }: { lowTier: boolean }) {
   return (
     <>
@@ -263,7 +303,7 @@ export function World({ lowTier }: { lowTier: boolean }) {
       <Lights />
 
       {/* Reflections only — a colourful studio on deep indigo, baked once. */}
-      <Environment resolution={lowTier ? 64 : 256} frames={1}>
+      <BakedEnvironment resolution={lowTier ? 64 : 256}>
         <color attach="background" args={['#3B2F86']} />
         <Lightformer form="rect" intensity={3.2} color="#FFFFFF" position={[0, 7, 0]} rotation-x={Math.PI / 2} scale={[14, 5, 1]} />
         <Lightformer form="rect" intensity={3} color={PALETTE.pink} position={[-8, 2, 2]} rotation-y={Math.PI / 2} scale={[4, 8, 1]} />
@@ -271,7 +311,7 @@ export function World({ lowTier }: { lowTier: boolean }) {
         <Lightformer form="ring" intensity={2.6} color={PALETTE.yellow} position={[0, 2, -9]} scale={5} />
         <Lightformer form="rect" intensity={2} color={PALETTE.coral} position={[0, -6, 0]} rotation-x={-Math.PI / 2} scale={[14, 6, 1]} />
         <Lightformer form="rect" intensity={1.6} color={PALETTE.lilac} position={[0, 2, 10]} rotation-y={Math.PI} scale={[10, 4, 1]} />
-      </Environment>
+      </BakedEnvironment>
     </>
   )
 }

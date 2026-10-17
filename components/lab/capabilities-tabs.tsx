@@ -48,8 +48,6 @@ export function CapabilitiesTabs({ capabilities, levels }: { capabilities: Capab
     tabs.current[next]?.focus()
   }
 
-  const cap = capabilities[active]
-
   return (
     <div className="l-caps-ui">
       <div role="tablist" aria-label="Capabilities" aria-orientation="vertical" className="l-tabs">
@@ -79,39 +77,48 @@ export function CapabilitiesTabs({ capabilities, levels }: { capabilities: Capab
         ))}
       </div>
 
-      <div
-        role="tabpanel"
-        id={`cap-panel-${cap.id}`}
-        aria-labelledby={`cap-tab-${cap.id}`}
-        className="l-panel"
-       
-        key={cap.id}
-      >
-        <p className="l-label">
-          {cap.index} — {cap.name}
-        </p>
-        <p className="l-panel-summary">{cap.summary}</p>
-        <ul className="l-skills">
-          {cap.skills.map((s) => (
-            <li key={s.name}>
-              <span className="l-level" data-level={s.level} aria-hidden="true" />
-              <span>{s.name}</span>
-              <span className="l-sr">— {labelOf(s.level)}</span>
-            </li>
-          ))}
-        </ul>
-        <dl className="l-legend">
-          {levels.map((l) => (
-            <div key={l.id}>
-              <dt>
-                <span className="l-level" data-level={l.id} aria-hidden="true" />
-                {l.label}
-              </dt>
-              <dd>{l.hint}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+      {/*
+        Every panel is in the HTML — inactive ones are only `hidden` — so the
+        full capability map is readable without JavaScript and by crawlers.
+        Unhiding replays the panel's entrance animation, as remounting did.
+      */}
+      {capabilities.map((cap, i) => (
+        <div
+          key={cap.id}
+          role="tabpanel"
+          id={`cap-panel-${cap.id}`}
+          aria-labelledby={`cap-tab-${cap.id}`}
+          className="l-panel"
+          hidden={i !== active}
+        >
+          <p className="l-label">
+            {cap.index} — {cap.name}
+          </p>
+          <p className="l-panel-summary">{cap.summary}</p>
+          <ul className="l-skills">
+            {cap.skills.map((s) => (
+              <li key={s.name}>
+                <span className="l-level" data-level={s.level} aria-hidden="true" />
+                <span>{s.name}</span>
+                <span className="l-sr">— {labelOf(s.level)}</span>
+              </li>
+            ))}
+          </ul>
+          {i === active && (
+            <dl className="l-legend">
+              {levels.map((l) => (
+                <div key={l.id}>
+                  <dt>
+                    <span className="l-level" data-level={l.id} aria-hidden="true" />
+                    {l.label}
+                  </dt>
+                  <dd>{l.hint}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

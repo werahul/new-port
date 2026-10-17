@@ -1,3 +1,4 @@
+import { JsonLd } from '@/components/lab/json-ld'
 import { Loader } from '@/components/lab/loader'
 import { loaderScript } from '@/components/lab/loader-script'
 import { ProgressRail } from '@/components/lab/progress-rail'
@@ -9,6 +10,7 @@ import { Hero } from '@/components/lab/sections/hero'
 import { Work } from '@/components/lab/sections/work'
 import { WorldHost } from '@/components/lab/world/world-host'
 import { railStages, sceneData } from '@/content/lab'
+import { homeJsonLd } from '@/lib/structured-data'
 
 /**
  * Before paint on a first visit: expect the world unless motion is reduced, so the DOM fallbacks (screenshots, diagrams)
@@ -34,6 +36,7 @@ export default function Home() {
     <div data-world="off" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: loaderScript }} />
       <script dangerouslySetInnerHTML={{ __html: expectWorld }} />
+      <JsonLd data={homeJsonLd()} />
       <Loader screens={scene.screens.map((s) => s.src)} />
       <WorldHost scene={scene} />
       <ProgressRail stages={railStages} />

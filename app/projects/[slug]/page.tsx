@@ -11,7 +11,10 @@ import { StageSurface } from '@/components/lab/stage-surface'
 import { WorldHost } from '@/components/lab/world/world-host'
 import { CountUp } from '@/components/lab/count-up'
 import { exhibits, sceneData } from '@/content/lab'
-import { adjacentProjects, caseStudySlugs, getProject } from '@/content/projects'
+import { adjacentProjects, caseStudySlugs, getProject, type Project } from '@/content/projects'
+import { JsonLd } from '@/components/lab/json-ld'
+import { siteName } from '@/lib/site'
+import { caseStudyJsonLd } from '@/lib/structured-data'
 
 export const dynamicParams = false
 
@@ -19,27 +22,41 @@ export function generateStaticParams() {
   return caseStudySlugs.map((slug) => ({ slug }))
 }
 
+/**
+ * The outcome line, plus the primary stack when it still fits a search
+ * snippet — so the description says what was built *and* with what.
+ */
+function describe(project: Project) {
+  const withStack = `${project.outcome} Built with ${project.tech.slice(0, 3).join(', ')}.`
+  return withStack.length <= 160 ? withStack : project.outcome
+}
+
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const project = getProject(params.slug)
   if (!project) return {}
-  const title = `${project.title} — Case Study`
+  // the suffix only while the full title (template adds " — Rahul Kumar") fits a result line
+  const study = `${project.title} — Case Study`
+  const title = `${study} — ${siteName}`.length <= 60 ? study : project.title
+  const description = describe(project)
   const url = `/projects/${project.slug}`
+  // images come from ./opengraph-image.tsx; siteName and locale are restated
+  // because a page-level openGraph object replaces the root one wholesale
   return {
     title,
-    description: project.outcome,
+    description,
     alternates: { canonical: url },
     openGraph: {
       type: 'article',
       url,
       title,
-      description: project.outcome,
-      images: project.image ? [{ url: project.image }] : undefined,
+      description,
+      siteName,
+      locale: 'en_US',
     },
     twitter: {
       card: 'summary_large_image',
       title,
-      description: project.outcome,
-      images: project.image ? [project.image] : undefined,
+      description,
     },
   }
 }
@@ -131,6 +148,7 @@ export default function ProjectCaseStudyPage({ params }: { params: { slug: strin
 
   return (
     <div className="l-case" data-world="off" suppressHydrationWarning>
+      <JsonLd data={caseStudyJsonLd(project, describe(project))} />
       {/* archived studies have no exhibit in the world, so they never expect one */}
       {exhibitIndex >= 0 && (
         <>
