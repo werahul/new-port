@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from 'next/font/
 import './globals.css'
 import './lab.css'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { SmoothScroll } from '@/components/ui/smooth-scroll'
 import { LabNav } from '@/components/lab/nav'
 import { RevealObserver } from '@/components/lab/reveal-observer'
@@ -135,6 +136,7 @@ export default function RootLayout({
         <RevealObserver />
         <SoundHost />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
