@@ -1,15 +1,11 @@
 export interface ExperienceEntry {
   id: string
-  /** running index on the journey rail, e.g. "01" */
-  index: string
   company: string
   role: string
   period: string
   location: string
   /** one line on what the company / product actually is */
   context: string
-  /** accent hue keyed to the design tokens */
-  accent: 'violet' | 'cobalt' | 'cyan' | 'emerald' | 'coral' | 'pink'
   /** the engineering problems this role put in front of me */
   challenges: string[]
   /** what got built to answer them */
@@ -27,14 +23,12 @@ export interface ExperienceEntry {
 export const experience: ExperienceEntry[] = [
   {
     id: 'jasper-colin',
-    index: '01',
     company: 'Jasper Colin',
     role: 'Next.js Developer',
     period: 'Oct 2025 — Present',
     location: 'Noida, India',
     context:
       'B2B market research, data insights and analytics — a multi-application CRM platform plus an AI-powered lead-generation product.',
-    accent: 'cobalt',
     challenges: [
       'Three CRM applications — Admin, Client and Supplier — had to ship and deploy independently without fragmenting the interface or duplicating UI code across teams.',
       'The AI lead-generation product needed UI workflows wired directly into backend intelligence services while staying responsive.',
@@ -54,14 +48,12 @@ export const experience: ExperienceEntry[] = [
   },
   {
     id: 'melange-digital',
-    index: '02',
     company: 'Melange Digital',
     role: 'Web Developer',
     period: 'Jan 2023 — Sep 2025',
     location: 'Goa — Remote',
     context:
       'A digital studio shipping client web products across industries on an agency delivery cadence.',
-    accent: 'emerald',
     challenges: [
       'Client sites had to stay fast and visually consistent across browsers while being built and iterated on tight agency timelines.',
       'Marketing teams needed to edit live copy and data without a deploy — a spreadsheet standing in for a lightweight CMS.',
