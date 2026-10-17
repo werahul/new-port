@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { about, experience } from "@/content/lab";
+import { about, experience, quickAnswers } from "@/content/lab";
+import { ScrollLink } from "../scroll-link";
 
 /**
  * Stage 2 begins. The camera swings round the pearl, which swells and churns
@@ -90,6 +91,36 @@ export function About() {
                 </li>
               ))}
             </ol>
+          </div>
+
+          {/* the questions a recruiter or client asks first, answered plainly */}
+          <div className="l-xp l-brief" data-reveal>
+            <h3 className="l-label">In brief</h3>
+            <dl>
+              {quickAnswers.map(({ q, a, link }) => (
+                <div key={q}>
+                  <dt>{q}</dt>
+                  <dd>
+                    {a}
+                    {link && (
+                      <>
+                        {" "}
+                        {link.href.startsWith("#") ? (
+                          <ScrollLink to={link.href.slice(1)}>{link.label}</ScrollLink>
+                        ) : link.external ? (
+                          <a href={link.href} target="_blank" rel="noopener noreferrer">
+                            {link.label}
+                            <span className="l-sr"> (opens in a new tab)</span>
+                          </a>
+                        ) : (
+                          <a href={link.href}>{link.label}</a>
+                        )}
+                      </>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </div>

@@ -9,10 +9,11 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { ambient } from './ambient'
-import { setSound, soundPreferred } from './sound'
+import { setSound, soundPreferred, useSoundOn } from './sound'
 
 export function SoundHost() {
   const pathname = usePathname()
+  const on = useSoundOn()
 
   // resume a remembered preference on the first gesture (the loader, when it
   // is showing, asks instead)
@@ -31,8 +32,9 @@ export function SoundHost() {
     return off
   }, [])
 
-  // mood: how far through the page
+  // mood: how far through the page — only while there is a score to shape
   useEffect(() => {
+    if (!on) return
     let raf = 0
     const onScroll = () => {
       cancelAnimationFrame(raf)
@@ -47,7 +49,7 @@ export function SoundHost() {
       cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
     }
-  }, [pathname])
+  }, [pathname, on])
 
   // a chime per section
   useEffect(() => {

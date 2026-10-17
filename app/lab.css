@@ -582,11 +582,14 @@ body:has([data-lab]) {
   gap: 2px;
   height: 12px;
 }
+/* bars are full height and scaled, so the animation never touches layout */
 .lab .l-eq i {
   width: 2.5px;
-  height: 4px;
+  height: 12px;
   border-radius: 2px;
   background: currentColor;
+  transform: scaleY(0.3333);
+  transform-origin: bottom;
 }
 .lab .l-eq[data-on='true'] i {
   animation: l-eq 1.1s ease-in-out infinite;
@@ -731,12 +734,28 @@ body:has([data-lab]) {
   font-size: 0.85rem;
   font-weight: 550;
 }
+/* the dot and its halo are both pseudo-elements, so the pulse is a
+   compositor-only scale and fade rather than a box-shadow repaint */
 .lab .l-status-dot {
+  position: relative;
+  isolation: isolate;
   width: 7px;
   height: 7px;
+}
+.lab .l-status-dot::before,
+.lab .l-status-dot::after {
+  content: '';
+  position: absolute;
   border-radius: 50%;
+}
+.lab .l-status-dot::before {
+  z-index: 1;
+  inset: 0;
   background: rgb(var(--l-emerald));
-  box-shadow: 0 0 0 3px rgb(var(--l-emerald) / 0.22);
+}
+.lab .l-status-dot::after {
+  inset: -3px;
+  background: rgb(var(--l-emerald) / 0.22);
   animation: l-pulse 2.4s ease-in-out infinite;
 }
 .lab .l-hero-title {
@@ -961,6 +980,35 @@ body:has([data-lab]) {
   font-size: 0.94rem;
   line-height: 1.55;
   color: rgb(var(--l-ink-2));
+}
+.lab .l-brief dl {
+  margin: 10px 0 0;
+}
+.lab .l-brief dl > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--l-line);
+}
+.lab .l-brief dt {
+  font-weight: 600;
+}
+.lab .l-brief dd {
+  margin: 4px 0 0;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: rgb(var(--l-ink-2));
+}
+.lab .l-brief dd a {
+  font-weight: 600;
+  color: rgb(var(--l-ink));
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--l-ink) / 0.25);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.lab .l-brief dd a:hover {
+  color: rgb(var(--l-accent));
+  text-decoration-color: rgb(var(--l-accent));
 }
 @media (max-width: 639px) {
   .lab .l-xp li {
@@ -2456,9 +2504,11 @@ html:has(.lab[data-loading='']) {
     transform: none;
   }
 }
+/* the 3px halo grows to 6px (13px → 19px across) as it fades */
 @keyframes l-pulse {
   50% {
-    box-shadow: 0 0 0 6px rgb(22 190 120 / 0);
+    transform: scale(1.4615);
+    opacity: 0;
   }
 }
 @keyframes l-cue {
@@ -2486,16 +2536,16 @@ html:has(.lab[data-loading='']) {
 @keyframes l-eq {
   0%,
   100% {
-    height: 4px;
+    transform: scaleY(0.3333);
   }
   50% {
-    height: 12px;
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lab .l-eq[data-on='true'] i,
-  .lab .l-status-dot,
+  .lab .l-status-dot::after,
   .lab .l-cue-line::after,
   .lab .l-orb-body,
   .lab .l-orb-moon {

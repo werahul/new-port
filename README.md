@@ -60,5 +60,16 @@ lib/                      site URL, capability and motion checks
 
 ## Deployment
 
-Netlify (`netlify.toml`, `@netlify/plugin-nextjs`). Security headers, the CSP
-and redirects (`/resume`, retired case-study URLs) live in `next.config.js`.
+Vercel. Set `NEXT_PUBLIC_SITE_URL` to the custom domain for production (see
+`.env.example`); previews are kept out of the index automatically. Security
+headers, the CSP and redirects (`/resume`, retired case-study URLs) live in
+`next.config.js`.
+
+## Search
+
+- Metadata, canonicals, `robots.txt` and `sitemap.xml` all derive from one
+  origin in `lib/site.ts`.
+- JSON-LD (`lib/structured-data.ts`): Person, WebSite and ProfilePage on the
+  home page; BreadcrumbList, WebPage and CreativeWork on each case study —
+  built from `content/`, so it can't say anything the pages don't.
+- Social cards are generated per page (`opengraph-image.tsx`, `lib/og-card.tsx`).

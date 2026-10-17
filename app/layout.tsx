@@ -34,10 +34,14 @@ const sans = Instrument_Sans({
   variable: '--font-sans',
 })
 
-/** Numbers and indices only. */
+/**
+ * Numbers and indices only — never the largest text on screen, so it is not
+ * preloaded and doesn't compete with the two faces the hero paints in.
+ */
 const mono = JetBrains_Mono({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-mono',
 })
 
@@ -79,6 +83,14 @@ export const metadata: Metadata = {
   robots: isIndexable
     ? { index: true, follow: true }
     : { index: false, follow: false },
+  // Search Console / Bing Webmaster ownership tags — emitted only when set.
+  // DNS verification needs neither; these are for the HTML-tag method.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { 'msvalidate.01': process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
 }
 
 export const viewport: Viewport = {
