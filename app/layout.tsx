@@ -113,6 +113,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>{isIndexable && <GoogleAnalytics />}</head>
       <body
         className={`${display.variable} ${sans.variable} ${mono.variable}`}
       >
@@ -136,7 +137,6 @@ export default function RootLayout({
         <RevealObserver />
         <SoundHost />
         <Analytics />
-        {isIndexable && <GoogleAnalytics />}
       </body>
     </html>
   )
