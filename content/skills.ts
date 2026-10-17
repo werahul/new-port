@@ -20,7 +20,6 @@ export interface SkillDomain {
   name: string
   /** one engineering sentence — what the work at this layer actually is */
   tagline: string
-  accent: 'violet' | 'cobalt' | 'cyan' | 'emerald' | 'coral' | 'pink'
   skills: Skill[]
 }
 
@@ -42,18 +41,6 @@ export const proficiencyMeta: Record<
   },
 }
 
-/** Header positioning words. */
-export const skillPillars = [
-  'Frontend',
-  'Backend',
-  'Database',
-  'AI',
-  'Architecture',
-  'Performance',
-  'Cloud',
-  'Security',
-] as const
-
 export const skillDomains: SkillDomain[] = [
   {
     id: 'frontend',
@@ -61,7 +48,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Frontend Engineering',
     tagline:
       'Component architectures and motion systems that stay fast and coherent as a product scales — including a shared library spanning three micro-frontends.',
-    accent: 'violet',
     skills: [
       { name: 'React.js', level: 'core' },
       { name: 'Next.js', level: 'core' },
@@ -88,7 +74,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Backend & APIs',
     tagline:
       'REST services, authentication and transactional email standing behind the products I ship end to end.',
-    accent: 'cobalt',
     skills: [
       { name: 'Node.js', level: 'core' },
       { name: 'Express.js', level: 'core' },
@@ -104,7 +89,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Database',
     tagline:
       'Modelling data around real access patterns and indexing for the queries that actually run.',
-    accent: 'emerald',
     skills: [
       { name: 'MongoDB', level: 'core' },
       { name: 'PostgreSQL', level: 'working' },
@@ -116,7 +100,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'AI & Agentic Systems',
     tagline:
       'Wiring language-model capability into product surfaces as observable workflows — shipped an AI lead-generation front end; going deeper on agentic tooling.',
-    accent: 'coral',
     skills: [
       { name: 'Python', level: 'working' },
       { name: 'Prompt Engineering', level: 'working' },
@@ -134,7 +117,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Performance & SEO',
     tagline:
       'Measurement-led work — a recent marketing site reached a Lighthouse performance score of 98.',
-    accent: 'cobalt',
     skills: [
       { name: 'Core Web Vitals', level: 'core' },
       { name: 'Lighthouse', level: 'core' },
@@ -150,7 +132,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Cloud & DevOps',
     tagline:
       'Deploying and delivering on managed platforms with reproducible, lockfile-driven pipelines.',
-    accent: 'emerald',
     skills: [
       { name: 'Vercel', level: 'core' },
       { name: 'Netlify', level: 'core' },
@@ -168,7 +149,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'Engineering & Security',
     tagline:
       'Tooling, standards and scanning kept inside the build — micro-frontend boundaries, and security treated as a build-time constraint.',
-    accent: 'violet',
     skills: [
       { name: 'Git', level: 'core' },
       { name: 'GitHub', level: 'core' },
@@ -189,7 +169,6 @@ export const skillDomains: SkillDomain[] = [
     name: 'AI-Assisted Development',
     tagline:
       'Using AI tooling for review, debugging and throughput — without handing over authorship of the system.',
-    accent: 'coral',
     skills: [
       { name: 'Claude', level: 'core' },
       { name: 'GitHub Copilot', level: 'core' },
@@ -199,5 +178,3 @@ export const skillDomains: SkillDomain[] = [
     ],
   },
 ]
-
-export const proficiencyOrder: Proficiency[] = ['core', 'working', 'exploring']

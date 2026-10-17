@@ -1,238 +1,64 @@
-# Rahul's Portfolio - Frontend Engineer
+# Rahul Kumar — portfolio
 
-A stunning, animated portfolio website built with Next.js, featuring modern animations, smooth scrolling, and a premium design aesthetic.
+The portfolio of a full-stack engineer: one scroll-driven 3D world behind a
+fully server-rendered page. Every word, link and project fact is in the HTML;
+the WebGL scene is an enhancement layered behind it, never a gate in front of it.
 
-## ✨ Features
+## Stack
 
-- **🎨 One dark visual system** - No toggle, no persisted preference, no flash
-- **🎭 Smooth Animations** - GSAP + Framer Motion powered transitions
-- **📱 Responsive Design** - Optimized for all devices
-- **⚡ Smooth Scrolling** - Lenis-powered smooth scroll experience
-- **🎯 Interactive Elements** - Hover effects, parallax, and micro-interactions
-- **🔧 Modern Tech Stack** - Next.js 14, TypeScript, TailwindCSS
-- **♿ Accessibility** - Keyboard navigation and reduced motion support
+- **Next.js 14** (App Router, static generation) and **TypeScript**
+- **three.js** via **React Three Fiber** and **drei** for the world
+- **Lenis** for smooth scrolling, **lucide-react** for icons
+- **Web Audio** for the optional generative ambient score (no audio files)
+- Hand-written CSS (`app/lab.css`, every class `l-` prefixed); no CSS framework
 
-## 🛠 Tech Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: TailwindCSS
-- **Animations**: GSAP + Framer Motion
-- **Smooth Scroll**: Lenis
-- **State Management**: Zustand
-- **Icons**: Lucide React
-- **3D Elements**: Spline (optional)
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd rahul-portfolio
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
-
-```
-rahul_portfolio/
-├── app/                    # Next.js app directory
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── layout/           # Layout components
-│   │   ├── sidebar.tsx   # Navigation sidebar
-│   │   └── footer.tsx    # Footer component
-│   ├── sections/         # Page sections
-│   │   ├── hero-section.tsx
-│   │   ├── about-section.tsx
-│   │   ├── projects-section.tsx
-│   │   ├── timeline-section.tsx
-│   │   ├── testimonials-section.tsx
-│   │   └── contact-section.tsx
-│   └── ui/               # UI components
-│       └── smooth-scroll.tsx
-├── lib/                  # Utility functions
-│   ├── store.ts          # Zustand store
-│   └── utils.ts          # Helper functions
-├── public/               # Static assets
-└── package.json          # Dependencies
-```
-
-## 🎨 Customization
-
-### Colors
-
-The site is dark-only. Every colour is a CSS custom property defined once at
-`:root` in `app/globals.css`, as space-separated RGB channels so Tailwind's
-`/opacity` modifiers keep working:
-
-```css
-:root {
-  --base: 14 15 19;        /* page */
-  --surface-1: 20 22 28;   /* raised panel */
-  --fg: 240 241 245;       /* type */
-  --violet: 149 108 255;   /* the accent family */
-  --cobalt: 74 137 255;
-  /* … */
-}
-```
-
-Sections declare their hue with `data-accent="cobalt"`, which re-points
-`--accent` for everything inside them — rules, bullets, focus rings, glows and
-the atmospheric wash. The 3D world reads the same tokens, so the scene and the
-interface can never drift apart.
-
-### Animations
-
-GSAP animations are configured in each section component. You can modify:
-
-- Scroll trigger points
-- Animation durations
-- Easing functions
-- Stagger delays
-
-### Content
-
-Update the content in each section component:
-
-- **Hero Section**: Update name, title, and description
-- **About Section**: Modify skills, experience, and personal info
-- **Projects Section**: Add your projects with images and links
-- **Timeline Section**: Update work experience
-- **Testimonials Section**: Add client testimonials
-- **Contact Section**: Update contact information
-
-## 🎯 Key Features Explained
-
-### Smooth Scrolling
-Uses Lenis for buttery-smooth scrolling with configurable easing and speed.
-
-### World Lifecycle
-A pre-paint inline script stamps `data-world` on `<html>`, which decides the
-hero's layout before the first paint. The 3D scene then reports `ready` only
-once it has rendered a real frame, and a CSS atmosphere sits behind it the whole
-time — so the hero is never blank, whether or not WebGL is available.
-
-### GSAP Animations
-- ScrollTrigger for scroll-based animations
-- Timeline for complex animation sequences
-- Stagger effects for list animations
-
-### Responsive Design
-- Mobile-first approach
-- Breakpoint-specific layouts
-- Touch-friendly interactions
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Deploy automatically
-
-### Other Platforms
-
-The app can be deployed to any platform that supports Next.js:
+## Getting started
 
 ```bash
-npm run build
-npm start
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build
+npm run start    # serve the build
+npm run lint
 ```
 
-## 📱 Performance
+Copy `.env.example` to `.env.local` for the canonical URL, the résumé link and
+the contact form backend. Everything is optional in development.
 
-- **Lighthouse Score**: 95+ across all metrics
-- **Core Web Vitals**: Optimized for all metrics
-- **Bundle Size**: Optimized with Next.js built-in optimizations
-- **Images**: Next.js Image component for optimization
+## Layout
 
-## 🔧 Development
-
-### Available Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+```
+app/
+  layout.tsx              fonts, nav, smooth scroll, sound, analytics
+  page.tsx                the home journey
+  projects/[slug]/        case studies
+  globals.css             reset and document-level rules
+  lab.css                 the design system
+components/
+  lab/                    nav, loader, sections, case-study parts
+  lab/world/              the 3D world: canvas, camera rigs, keyframes, scene objects
+  lab/sound/              ambient score and its controls
+  ui/smooth-scroll.tsx    Lenis
+content/
+  lab.ts                  the home page's copy and scene data
+  projects.ts             every project and case study
+  profile.ts, experience.ts, skills.ts
+lib/                      site URL, capability and motion checks
 ```
 
-### Code Style
+## How the world runs
 
-- TypeScript for type safety
-- ESLint for code quality
-- Prettier for formatting
-- Component-based architecture
+- The page renders and paints without any 3D. The canvas chunk loads on an
+  idle moment after first paint (on weaker devices, at the first interaction).
+- Each section carries a `data-anchor`; `components/lab/world/keyframes.ts`
+  pins the camera to a keyframe per anchor and the rig interpolates between
+  them as you scroll.
+- `data-world` on the page root (`off` → `pending` → `on`) lets CSS swap the
+  static fallbacks for the live scene once it has rendered a real frame.
+- Without WebGL, or when the system asks for reduced motion, the page is the
+  flat, art-directed version — same content, same structure.
 
-## 🎨 Design System
+## Deployment
 
-### Typography
-- **Primary**: Inter (Google Fonts)
-- **Monospace**: JetBrains Mono
-- **Display**: Clash Display
-
-### Spacing
-- Consistent spacing scale using TailwindCSS
-- Responsive padding and margins
-
-### Components
-- Glassmorphism effects
-- Gradient backgrounds
-- Neon glow effects
-- Smooth transitions
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🙏 Acknowledgments
-
-- [GSAP](https://greensock.com/gsap/) for powerful animations
-- [Framer Motion](https://www.framer.com/motion/) for React animations
-- [TailwindCSS](https://tailwindcss.com/) for utility-first CSS
-- [Lenis](https://github.com/studio-freight/lenis) for smooth scrolling
-- [Lucide](https://lucide.dev/) for beautiful icons
-
-## 📞 Contact
-
-- **Email**: rahul@example.com
-- **LinkedIn**: [Your LinkedIn]
-- **GitHub**: [Your GitHub]
-
----
-
-Built with ❤️ using Next.js and modern web technologies. 
+Netlify (`netlify.toml`, `@netlify/plugin-nextjs`). Security headers, the CSP
+and redirects (`/resume`, retired case-study URLs) live in `next.config.js`.

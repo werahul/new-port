@@ -13,8 +13,6 @@ export const profile = {
    * an email signature keeps working when the file is re-uploaded.
    */
   resumeUrl: '/resume',
-  /** Short editorial statement, split into masked lines for the hero. */
-  heroLines: ['Full-stack engineer', 'building considered', 'digital products.'],
   summary:
     'I design, build and ship production systems end to end — interface engineering, APIs, data models and the architecture that holds them together. Recently that has meant micro-frontend platforms, AI-assisted product surfaces and performance work that moves real numbers.',
   stats: [
@@ -23,16 +21,6 @@ export const profile = {
     { value: '7', label: 'Industries — finance to generative AI' },
   ],
 } as const
-
-/** Hero copy. */
-export const heroCopy = {
-  kicker: 'Full-Stack Engineer',
-  /** cycled in the hero's "I build ___" line */
-  builds: ['Next.js apps', 'REST APIs', 'AI products', 'Micro-frontends', 'Design systems'],
-  positioning: ['MERN', 'Next.js', 'AI', 'Product engineering'],
-  statement:
-    'I build complete products — interface to infrastructure — and the systems that keep them fast, secure and coherent as they scale.',
-}
 
 export interface SocialLink {
   label: string
@@ -44,10 +32,4 @@ export const socials: SocialLink[] = [
   { label: 'GitHub', href: 'https://github.com/werahul', icon: Github },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/werahul/', icon: Linkedin },
   { label: 'Email', href: 'mailto:rahuldev.kb@gmail.com', icon: Mail },
-]
-
-export const contactChannels = [
-  { title: 'Email', value: profile.email, href: `mailto:${profile.email}` },
-  { title: 'Phone', value: profile.phone, href: `tel:${profile.phone.replace(/\s/g, '')}` },
-  { title: 'Location', value: profile.location, href: null },
 ]

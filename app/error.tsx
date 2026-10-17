@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { RotateCcw } from 'lucide-react'
-import { Container } from '@/components/primitives'
+import { StaticSky } from '@/components/lab/static-sky'
 
 /**
  * Route-level boundary: catches anything that escapes a section (a rejected
@@ -21,29 +20,37 @@ export default function RouteError({
   }, [error])
 
   return (
-    <div data-tone="light" className="pattern-grid flex min-h-[calc(100svh-4rem)] items-center bg-bg text-fg">
-      <Container>
-        <div className="b-box max-w-2xl -rotate-1 p-6 sm:p-10">
-          <span data-accent="coral" className="sticker rotate-2">
-            Error
-          </span>
-          <h1 className="h-display mt-6 text-5xl sm:text-7xl">Something broke.</h1>
-          <p className="mt-6 text-lg leading-relaxed text-muted">
-            This one is on the site, not on you. Try again — and if it keeps happening, the contact
-            form on the home page still works.
+    <>
+      <StaticSky />
+      <div className="l-content">
+        <section className="l-wrap l-oops" aria-labelledby="oops-title">
+          <p className="l-label">Error — something broke</p>
+          <h1 id="oops-title" className="l-display l-oops-title">
+            <span className="l-line">
+              <span>This one&apos;s on</span>
+            </span>
+            <span className="l-line">
+              <span>
+                the <em className="l-serif">site.</em>
+              </span>
+            </span>
+          </h1>
+          <p className="l-lead">
+            Not on you. Try again — and if it keeps happening, the email on the home page always works.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <button type="button" onClick={reset} data-accent="yellow" className="b-btn">
-              <RotateCcw aria-hidden className="h-4 w-4" strokeWidth={3} />
+
+
+          <div className="l-actions">
+            <button type="button" onClick={reset} className="l-btn l-btn-solid">
               Try again
             </button>
-            <a href="/" className="b-btn b-btn-ghost">
+            <a href="/" className="l-btn">
               Back to the start
             </a>
           </div>
-          {error.digest && <p className="label mt-8 text-muted">Reference {error.digest}</p>}
-        </div>
-      </Container>
-    </div>
+          {error.digest && <p className="l-label l-oops-ref">Reference {error.digest}</p>}
+        </section>
+      </div>
+    </>
   )
 }

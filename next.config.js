@@ -28,7 +28,7 @@ const RESUME_URL =
 // The contact form POSTs to an external form backend; its origin has to be
 // allowed through connect-src and form-action or the browser blocks the request
 // before it leaves the page. Mirrors the resolution order in
-// components/sections/contact-section.tsx: an explicit endpoint wins, otherwise
+// components/lab/contact-form.tsx: an explicit endpoint wins, otherwise
 // Web3Forms if an access key is configured.
 let contactOrigin = ''
 try {
@@ -84,7 +84,14 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   async redirects() {
-    return [{ source: '/resume', destination: RESUME_URL, permanent: false }]
+    return [
+      { source: '/resume', destination: RESUME_URL, permanent: false },
+      // the redesign was reviewed at /test before it became the site
+      { source: '/test', destination: '/', permanent: false },
+      // the two Jasper Colin case studies became one
+      { source: '/projects/affiliate-analytics', destination: '/projects/affiliate-platform', permanent: true },
+      { source: '/projects/affiliate-admin', destination: '/projects/affiliate-platform', permanent: true },
+    ]
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]

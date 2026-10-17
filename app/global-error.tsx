@@ -31,8 +31,9 @@ export default function GlobalError({
           minHeight: '100svh',
           display: 'flex',
           alignItems: 'center',
-          background: 'rgb(255 244 224)',
-          color: 'rgb(10 10 10)',
+          justifyContent: 'center',
+          background: 'linear-gradient(to bottom, #7e5bff 0%, #b48cff 30%, #ffc4e1 62%, #d3c2ff 100%)',
+          color: '#16161f',
           fontFamily: 'system-ui, sans-serif',
           colorScheme: 'light',
         }}
@@ -43,8 +44,8 @@ export default function GlobalError({
             padding: '2rem',
             margin: '0 1rem',
             background: '#fff',
-            border: '3px solid rgb(10 10 10)',
-            boxShadow: '8px 8px 0 0 rgb(10 10 10)',
+            borderRadius: '28px',
+            boxShadow: '0 34px 80px -36px rgb(60 30 150 / 0.55)',
           }}
         >
           <p
@@ -53,11 +54,11 @@ export default function GlobalError({
               fontSize: '0.6875rem',
               letterSpacing: '0.16em',
               textTransform: 'uppercase',
-              color: 'rgb(10 10 10)',
-              background: 'rgb(255 214 10)',
+              color: '#ffffff',
+              background: '#17162a',
               display: 'inline-block',
-              padding: '0.25rem 0.5rem',
-              border: '2px solid rgb(10 10 10)',
+              padding: '0.4rem 0.75rem',
+              borderRadius: '999px',
               fontWeight: 700,
               fontFamily: 'ui-monospace, monospace',
             }}
@@ -80,7 +81,7 @@ export default function GlobalError({
             style={{
               margin: '1.5rem 0 0',
               lineHeight: 1.65,
-              color: 'rgb(70 66 60)',
+              color: '#323242',
             }}
           >
             Something failed before the site could render. Reloading usually
@@ -91,15 +92,16 @@ export default function GlobalError({
             onClick={reset}
             style={{
               marginTop: '2.5rem',
-              border: '3px solid rgb(10 10 10)',
-              boxShadow: '4px 4px 0 0 rgb(10 10 10)',
+              border: 0,
+              borderRadius: '999px',
               cursor: 'pointer',
               padding: '0.875rem 1.75rem',
               fontSize: '0.875rem',
               fontWeight: 800,
               textTransform: 'uppercase',
-              background: 'rgb(255 214 10)',
-              color: 'rgb(10 10 10)',
+              letterSpacing: '0.1em',
+              background: '#16161f',
+              color: '#ffffff',
             }}
           >
             Try again

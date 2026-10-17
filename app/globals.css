@@ -1,290 +1,163 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ==========================================================================
-   NEOBRUTALIST DESIGN SYSTEM
-
-   Ink lines, hard offset shadows, flat loud colour, oversized grotesk type.
-   Nothing is blurred, nothing glows, nothing is rounded.
-
-   Every colour is an `r g b` triple so Tailwind's `/opacity` modifier works.
-   Two attributes drive the whole system:
-     data-tone="light|dark"  — re-points bg / fg / card / edge / shadow
-     data-accent="<hue>"     — re-points --accent for one element subtree
+   Document-level base: a small reset and the few rules that must live
+   outside the `.lab` root. The design system itself is app/lab.css.
    ========================================================================== */
 
-@layer base {
-  :root {
-    /* fixed palette */
-    --ink: 10 10 10;
-    --cream: 255 244 224;
-    --paper: 255 255 255;
-    --night: 17 17 17;
-
-    --yellow: 255 214 10;
-    --pink: 255 99 168;
-    --violet: 182 156 255;
-    --cobalt: 96 145 255;
-    --cyan: 77 217 255;
-    --emerald: 184 255 60;
-    --coral: 255 138 61;
-
-    --accent: var(--yellow);
-
-    /* light tone is the default */
-    --bg: var(--cream);
-    --fg: var(--ink);
-    --card: var(--paper);
-    --edge: var(--ink);
-    --muted: 70 66 60;
-    --shadow-c: var(--ink);
-
-    color-scheme: light;
-  }
-
-  [data-tone='light'] {
-    --bg: var(--cream);
-    --fg: var(--ink);
-    --card: var(--paper);
-    --edge: var(--ink);
-    --muted: 70 66 60;
-    --shadow-c: var(--ink);
-  }
-
-  [data-tone='dark'] {
-    --bg: var(--night);
-    --fg: var(--cream);
-    --card: 30 30 30;
-    --edge: var(--cream);
-    --muted: 196 189 175;
-    --shadow-c: var(--cream);
-  }
-
-  /* An accent-filled block always carries ink text and ink lines. */
-  [data-tone='accent'] {
-    --bg: var(--accent);
-    --fg: var(--ink);
-    --card: var(--paper);
-    --edge: var(--ink);
-    --muted: 40 38 34;
-    --shadow-c: var(--ink);
-  }
-
-  [data-accent='violet'] { --accent: var(--violet); }
-  [data-accent='cobalt'] { --accent: var(--cobalt); }
-  [data-accent='cyan'] { --accent: var(--cyan); }
-  [data-accent='emerald'] { --accent: var(--emerald); }
-  [data-accent='coral'] { --accent: var(--coral); }
-  [data-accent='pink'] { --accent: var(--pink); }
-  [data-accent='yellow'] { --accent: var(--yellow); }
-
-  html {
-    -webkit-text-size-adjust: 100%;
-    text-rendering: optimizeLegibility;
-    scroll-padding-top: 5rem;
-    background: rgb(var(--ink));
-  }
-
-  body {
-    @apply bg-bg font-sans text-fg antialiased;
-    overflow-x: clip;
-  }
-
-  ::selection {
-    background: rgb(var(--yellow));
-    color: rgb(var(--ink));
-  }
-
-  :focus-visible {
-    outline: 3px solid rgb(var(--pink));
-    outline-offset: 3px;
-  }
-
-  img,
-  video,
-  canvas {
-    display: block;
-  }
+/* ---- reset --------------------------------------------------------------- */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  border: 0 solid;
 }
 
-@layer components {
-  /* ---- type -------------------------------------------------------------- */
-
-  /** Poster headline: heavy, wide, uppercase, crushed. */
-  .h-display {
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-weight: 900;
-    font-stretch: 112%;
-    text-transform: uppercase;
-    line-height: 0.86;
-    letter-spacing: -0.045em;
-  }
-
-  .h-title {
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-weight: 800;
-    font-stretch: 105%;
-    text-transform: uppercase;
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-  }
-
-  /** Mono metadata label. */
-  .label {
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1.2;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-  }
-
-  /* ---- surfaces ---------------------------------------------------------- */
-
-  /** The base brutal box: ink line, flat fill, hard shadow. */
-  .b-box {
-    border: 3px solid rgb(var(--edge));
-    background: rgb(var(--card));
-    box-shadow: 6px 6px 0 0 rgb(var(--shadow-c));
-  }
-
-  /** Lifts toward the cursor and presses flat on click. */
-  .b-lift {
-    transition:
-      transform 150ms cubic-bezier(0.2, 0.9, 0.1, 1),
-      box-shadow 150ms cubic-bezier(0.2, 0.9, 0.1, 1);
-  }
-  @media (hover: hover) {
-    .b-lift:hover {
-      transform: translate(-3px, -3px);
-      box-shadow: 9px 9px 0 0 rgb(var(--shadow-c));
-    }
-  }
-  .b-lift:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0 0 0 0 rgb(var(--shadow-c));
-  }
-
-  /** Chunky button. Fill comes from `--accent`; lines are always ink. */
-  .b-btn {
-    @apply inline-flex select-none items-center justify-center gap-2 whitespace-nowrap px-5 py-3 text-sm sm:px-6;
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
-    color: rgb(var(--ink));
-    background: rgb(var(--accent));
-    border: 3px solid rgb(var(--ink));
-    box-shadow: 4px 4px 0 0 rgb(var(--shadow-c));
-    transition:
-      transform 120ms cubic-bezier(0.2, 0.9, 0.1, 1),
-      box-shadow 120ms cubic-bezier(0.2, 0.9, 0.1, 1),
-      background-color 120ms;
-  }
-  @media (hover: hover) {
-    .b-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 rgb(var(--shadow-c));
-    }
-  }
-  .b-btn:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0 0 0 0 rgb(var(--shadow-c));
-  }
-  .b-btn:disabled {
-    @apply cursor-not-allowed opacity-70;
-  }
-  .b-btn-ghost {
-    background: rgb(var(--card));
-    color: rgb(var(--fg));
-    border-color: rgb(var(--edge));
-  }
-
-  /** Rotated label, slapped on like a sticker. */
-  .sticker {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgb(var(--ink));
-    background: rgb(var(--accent));
-    border: 2.5px solid rgb(var(--ink));
-    box-shadow: 3px 3px 0 0 rgb(var(--ink));
-  }
-
-  /** Brutal form field. */
-  .b-field {
-    @apply w-full px-4 py-3 text-base text-ink placeholder:text-ink/45;
-    background: rgb(var(--paper));
-    border: 3px solid rgb(var(--ink));
-    box-shadow: 4px 4px 0 0 rgb(var(--ink));
-    border-radius: 0;
-    transition:
-      transform 120ms,
-      box-shadow 120ms;
-  }
-  .b-field:focus {
-    outline: none;
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 0 rgb(var(--pink));
-  }
-
-  /* ---- patterns ---------------------------------------------------------- */
-
-  .pattern-dots {
-    background-image: radial-gradient(rgb(var(--fg) / 0.22) 1.6px, transparent 1.7px);
-    background-size: 22px 22px;
-  }
-
-  .pattern-grid {
-    background-image:
-      linear-gradient(rgb(var(--fg) / 0.1) 1.5px, transparent 1.5px),
-      linear-gradient(90deg, rgb(var(--fg) / 0.1) 1.5px, transparent 1.5px);
-    background-size: 48px 48px;
-  }
-
-  .pattern-stripes {
-    background-image: repeating-linear-gradient(
-      -45deg,
-      rgb(var(--ink)) 0 10px,
-      transparent 10px 20px
-    );
-  }
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  scroll-padding-top: 5rem;
+  background: #e7e0fb;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  .text-pretty {
-    text-wrap: pretty;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .clip-triangle {
-    clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  }
-  .clip-star {
-    clip-path: polygon(
-      50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%,
-      50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%
-    );
-  }
-  .clip-burst {
-    clip-path: polygon(
-      50% 0%, 59% 21%, 79% 9%, 75% 32%, 98% 35%, 80% 50%, 98% 65%, 75% 68%,
-      79% 91%, 59% 79%, 50% 100%, 41% 79%, 21% 91%, 25% 68%, 2% 65%, 20% 50%,
-      2% 35%, 25% 32%, 21% 9%, 41% 21%
-    );
-  }
+/* the font variables are set on <body> by next/font, so the family starts here */
+body {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: inherit;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+small {
+  font-size: 80%;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 1em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+input:where([type='button'], [type='reset'], [type='submit']) {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+}
+
+button,
+[role='button'] {
+  cursor: pointer;
+}
+
+:disabled {
+  cursor: default;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1;
+  color: #9ca3af;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+[hidden]:where(:not([hidden='until-found'])) {
+  display: none;
 }
 
 /* ---- Lenis ---------------------------------------------------------------- */
@@ -300,28 +173,6 @@ html.lenis body {
 }
 .lenis.lenis-stopped {
   overflow: hidden;
-}
-
-/* ---- page transitions (case study ⇄ index) -------------------------------- */
-@media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: 180ms cubic-bezier(0.2, 0.9, 0.1, 1) both vt-out;
-  }
-  ::view-transition-new(root) {
-    animation: 260ms cubic-bezier(0.2, 0.9, 0.1, 1) both vt-in;
-  }
-}
-@keyframes vt-out {
-  to {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-}
-@keyframes vt-in {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
