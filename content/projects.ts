@@ -857,23 +857,23 @@ const secondary: Project[] = [
     href: 'https://www.acagarwal.com/',
     featured: false,
   },
-  {
-    slug: 'house-of-tales',
-    number: '11',
-    category: 'Brand · Landing',
-    title: 'House of Tales — Wedding Brand Landing',
-    outcome:
-      'A mobile-first landing page tuned for speed and SEO, with a Nodemailer-backed contact flow.',
-    context: 'House of Tales',
-    role: 'Frontend Engineer',
-    tech: ['Next.js', 'TypeScript', 'TailwindCSS', 'Framer Motion', 'GSAP', 'Nodemailer'],
-    image: '/proHouse.png',
-    href: 'https://www.houseoftales.co/',
-    featured: false,
-  },
+  // {
+  //   slug: 'house-of-tales',
+  //   number: '11',
+  //   category: 'Brand · Landing',
+  //   title: 'House of Tales — Wedding Brand Landing',
+  //   outcome:
+  //     'A mobile-first landing page tuned for speed and SEO, with a Nodemailer-backed contact flow.',
+  //   context: 'House of Tales',
+  //   role: 'Frontend Engineer',
+  //   tech: ['Next.js', 'TypeScript', 'TailwindCSS', 'Framer Motion', 'GSAP', 'Nodemailer'],
+  //   image: '/proHouse.png',
+  //   href: 'https://www.houseoftales.co/',
+  //   featured: false,
+  // },
   {
     slug: 'aartech-solonics',
-    number: '12',
+    number: '11',
     category: 'Corporate · Engineering',
     title: 'Aartech Solonics — Energy Engineering',
     outcome:
@@ -887,7 +887,7 @@ const secondary: Project[] = [
   },
   {
     slug: 'devboost',
-    number: '13',
+    number: '12',
     category: 'Product · Data',
     title: 'DevBoost — Engineering Intelligence',
     outcome:
